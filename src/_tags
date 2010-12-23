@@ -1,2 +1,2 @@
-<*.ml> : syntax_camlp4o, pkg_dom, pkg_camlp4, pkg_jslib.inline
-<*.js> : syntax_camlp4o, pkg_dom, pkg_camlp4, pkg_jslib.inline
+<*.ml> : syntax_camlp4o, pkg_dom, pkg_camlp4, pkg_jslib.inline, pkg_froc-dom
+<*.js> : syntax_camlp4o, pkg_dom, pkg_camlp4, pkg_jslib.inline, pkg_froc-dom

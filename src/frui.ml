@@ -1,6 +1,8 @@
 open Ocamljs.Inline
 
 module D = Dom
+module F = Froc
+module Fd = Froc_dom
 
 class logger =
 object
@@ -49,7 +51,12 @@ object (self)
     ignore (style#_set_display "inline-block");
     ignore (style#_set_position "absolute");
     ignore (style#_set_width "200px");
-    ignore (elt#appendChild dialog);
+    let mouse = Fd.mouse_b () in
+    Fd.appendChild elt
+    (F.blift mouse (fun (x,y) ->
+      dialog#_get_style#_set_left (string_of_int x);
+      dialog#_get_style#_set_top (string_of_int y);
+      dialog))
 
   initializer self#decorate
 end
