@@ -9,6 +9,7 @@ end
 
 class dialog (elt : D.element) =
 object (self)
+  val dialog = (D.document#createElement "div")
   method add_title =
     let title = (D.document#createElement "div") in
     let style = title#_get_style in
@@ -17,15 +18,18 @@ object (self)
     let title_text = (D.document#createTextNode "" : D.text) in
     title_text#_set_data "title";
     ignore (title#appendChild title_text);
-    ignore (elt#appendChild title);
     let close_text = (D.document#createTextNode "" : D.text) in
     close_text#_set_data "x";
     let close_style = close#_get_style in
     ignore (close_style#_set_display "inline-block");
     ignore (close_style#_set_position "absolute");
-    ignore (close_style#_set_right "3px");
+    ignore (close_style#_set_right "5px");
+    ignore (close_style#_set_cursor "hand");
+    close#_set_onclick
+      (fun _ -> ignore (elt#removeChild dialog); true);
     ignore (close#appendChild close_text);
-    ignore (title#appendChild close)
+    ignore (title#appendChild close);
+    ignore (dialog#appendChild title)
 
   method add_body =
     let body = (D.document#createElement "div") in
@@ -36,15 +40,16 @@ object (self)
     let text = (D.document#createTextNode "" : D.text) in
     text#_set_data "body";
     ignore (body#appendChild text);
-    ignore (elt#appendChild body)
+    ignore (dialog#appendChild body)
 
   method decorate =
     self#add_title;
     self#add_body;
-    let style = elt#_get_style in
+    let style = dialog#_get_style in
     ignore (style#_set_display "inline-block");
     ignore (style#_set_position "absolute");
-    ignore (style#_set_width "200px")
+    ignore (style#_set_width "200px");
+    ignore (elt#appendChild dialog);
 
   initializer self#decorate
 end
