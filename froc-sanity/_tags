@@ -1,0 +1,2 @@
+<*.ml> : pkg_dom,pkg_froc-dom
+<*.js> : pkg_dom,pkg_froc-dom
