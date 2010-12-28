@@ -9,16 +9,20 @@ object
   method log (msg : string) =  ignore(<:exp< console.log($msg$) >>)
 end
 
+let debug = (new logger)#log
+
 let set_text (e : D.element) text =
   let text_node = (D.document#createTextNode "" : D.text) in
   text_node#_set_data text;
   ignore (e#appendChild text_node)
 
-let mouse_down_e () =
+let mouse_down_e (elt : D.element) =
   let e, s = F.make_event () in
-  let f me = F.send s true in
-  Dom.document#addEventListener_mouseEvent_ "mousedown" f false;
-  F.cleanup (fun () -> Dom.document#removeEventListener_mouseEvent_ "mousedown" f false);
+  let f_down me = F.send s true in
+  let f_up me = F.send s false in
+  elt#addEventListener_mouseEvent_ "mousedown" f_down false;
+  elt#addEventListener_mouseEvent_ "mouseup" f_up false;
+  F.cleanup (fun () -> elt#removeEventListener_mouseEvent_ "mousedown" f_down false; elt#removeEventListener_mouseEvent_ "mouseup" f_up false);
   e
 
 class dialog (elt : D.element) =
@@ -60,12 +64,10 @@ object (self)
 	  dialog#_get_style#_set_top (string_of_int y);
 	  dialog
 	end));
-    let mouse_down = F.hold (false) (mouse_down_e ()) in
-    let nb = F.blift mouse_down (fun b -> b) in
-    F.notify_result_b nb (fun r -> match r with
+    let mouse_down = F.hold (false) (mouse_down_e dialog) in
+    F.notify_result_b (F.blift mouse_down (fun b -> b)) (fun r -> match r with
       |  F.Value b -> (moving <- b)
       | _ -> ())
-
 
   method decorate =
     self#add_title;
@@ -78,10 +80,8 @@ object (self)
   initializer self#decorate
 end
 
-let log = new logger
-
 let onload () =
-  log#log "onload";
+  debug "onload";
   let main = (D.document#getElementById "main" : D.element) in
   ignore (new dialog main)
 ;;
