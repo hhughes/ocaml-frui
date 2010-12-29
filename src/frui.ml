@@ -18,8 +18,8 @@ let set_text (e : D.element) text =
 
 let mouse_down_if_e p (elt : D.element) =
   let e, s = F.make_event () in
-  let f_down me = if p me then F.send s true in
-  let f_up me = if p me then F.send s false in
+  let f_down me = if p me then F.send s (true, me#_get_clientX - elt#_get_offsetLeft, me#_get_clientY - elt#_get_offsetTop) in
+  let f_up me = if p me then F.send s (false, me#_get_clientX - elt#_get_offsetLeft, me#_get_clientY - elt#_get_offsetTop) in
   elt#addEventListener_mouseEvent_ "mousedown" f_down false;
   elt#addEventListener_mouseEvent_ "mouseup" f_up false;
   F.cleanup (fun () -> elt#removeEventListener_mouseEvent_ "mousedown" f_down false; elt#removeEventListener_mouseEvent_ "mouseup" f_up false);
@@ -31,6 +31,7 @@ class dialog (elt : D.element) =
 object (self)
   val dialog = (D.document#createElement "div")
   val mutable moving = false
+  val mutable offset = (0,0)
   
   method add_title =
     let title = (D.document#createElement "div") in
@@ -61,11 +62,12 @@ object (self)
     (F.blift mouse_move (fun (x,y) ->
       if not moving then dialog
       else
-	begin
-	  dialog#_get_style#_set_left (string_of_int x);
-	  dialog#_get_style#_set_top (string_of_int y);
-	  dialog
-	end));
+	match offset with (o_x, o_y) ->
+	  begin
+	    dialog#_get_style#_set_left (string_of_int (x - o_x));
+	    dialog#_get_style#_set_top (string_of_int (y - o_y));
+	    dialog
+	  end));
     let is_resize me =
       let x = me#_get_clientX in
       let y = me#_get_clientY in
@@ -73,17 +75,11 @@ object (self)
       let t = dialog#_get_offsetTop in
       let w = dialog#_get_offsetWidth in
       let h = dialog#_get_offsetHeight in
-      debug (string_of_int x);
-      debug (string_of_int y);
-      debug (string_of_int l);
-      debug (string_of_int t);
-      debug (string_of_int w);
-      debug (string_of_int h);
-      x > (l+w)-5 && y > (t+h)-5
+      x > (l+w)-20 && y > (t+h)-20
     in
-    let mouse_down_move = F.hold (false) (mouse_down_if_e (fun me -> is_resize me) dialog) in
-    F.notify_result_b (F.blift mouse_down_move (fun b -> b)) (fun r -> match r with
-      |  F.Value b -> (moving <- b)
+    let mouse_down_move = F.hold (false,0,0) (mouse_down_if_e (fun me -> not (is_resize me)) dialog) in
+    F.notify_result_b (F.blift mouse_down_move (fun a -> a)) (fun r -> match r with
+      |  F.Value (b,x,y) -> (moving <- b; offset <- (x,y))
       | _ -> ())
 
   method decorate =
