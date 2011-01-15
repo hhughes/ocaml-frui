@@ -1,0 +1,8 @@
+(({
+  threadId: 0,
+  ty: ["msg"],
+  timestamp: 1,
+  name: "some name",
+  description: "some description",
+  misc: {}
+}))
