@@ -33,6 +33,18 @@
   },
   {
     tid: 0,
+    ty: ["fn_start"],
+    ts: 5,
+    name: "main()"
+  },
+  {
+    tid: 0,
+    ty: ["fn_finish"],
+    ts: 9,
+    name: "main()"
+  },
+  {
+    tid: 0,
     ty: ["t_finish"],
     ts: 10,
     name: "",

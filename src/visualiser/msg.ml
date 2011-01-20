@@ -1,6 +1,22 @@
 open Javascript
 
-class type msg = object end
+class msg = object end
+
+class fn =
+object
+  inherit msg
+  val mutable start = -1
+  val mutable finish = -1
+  val mutable name = ""
+  method set_start t = start <- t
+  method set_finish t = finish <- t
+  method set_name n = name <- n
+  method name = name
+  method start = start
+  method finish = finish
+end
+
+type event = E_msg of msg | E_fn of fn
 
 module Msg =
 struct

@@ -15,9 +15,20 @@ let add_to_thread msg =
 
 let render_msg (thread_elt : Dom.element) thread msg = 
   let msg_elt = (Dom.document#createElement "div" : Dom.element) in
-  ignore (msg_elt#_set_className (Msg.ty msg));
-  ignore (msg_elt#_set_title (Msg.desc msg));
-  ignore (msg_elt#_get_style#_set_left (string_of_int (10 * ((Msg.timestamp msg) - thread#start))));
+  (match msg with
+    | E_msg m ->
+      begin
+	ignore (msg_elt#_set_className "msg");
+	ignore (msg_elt#_set_title (Msg.desc m));
+	ignore (msg_elt#_get_style#_set_left (string_of_int (10 * ((Msg.timestamp m) - thread#start))))
+      end
+    |E_fn f ->
+      begin
+	ignore (msg_elt#_set_className "fn");
+	ignore (msg_elt#_set_title f#name);
+	ignore (msg_elt#_get_style#_set_left (string_of_int (10 * (f#start - thread#start))));
+	ignore (msg_elt#_get_style#_set_width (string_of_int (10 * (f#finish - (f#start + thread#start)))))
+      end);
   ignore (thread_elt#appendChild msg_elt)
 
 let render_thread id thread =
@@ -38,13 +49,7 @@ let load_objects o s =
     | "success" -> 
       begin
 	let msgs = unmarshall_json o in
-	let add_msg msg = match Msg.ty msg with
-	  | "msg"
-	  | "t_start"
-	  | "t_finish" -> add_to_thread msg
-	  | _ -> ()
-       	in
-	for_each add_msg msgs;
+	for_each add_to_thread msgs;
 	render_threads ()
       end
     | _ -> debug s
