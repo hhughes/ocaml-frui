@@ -23,7 +23,7 @@ let mouse_down_if_e p (elt : D.element) =
 
 let mouse_down_e (elt : D.element) = mouse_down_if_e (fun x -> true) elt
 
-class dialog (elt : D.element) =
+class dialog ~elt:(elt: D.element) ?x0:(x=50) ?y0:(y=50) () =
 object (self)
   val dialog = (D.document#createElement "div")
   val mutable state = Normal
@@ -109,6 +109,8 @@ object (self)
     ignore (dialog#_get_style#_set_position "absolute");
     ignore (dialog#_get_style#_set_width "200px");
     ignore (dialog#_get_style#_set_height "150px");
+    ignore (dialog#_get_style#_set_left (string_of_int x));
+    ignore (dialog#_get_style#_set_top (string_of_int y))
 
   initializer self#decorate
 end

@@ -1,8 +1,26 @@
-(({
-  threadId: 0,
-  ty: ["msg"],
-  timestamp: 1,
-  name: "some name",
-  description: "some description",
-  misc: {}
-}))
+[
+  {
+    tid: 0,
+    ty: ["msg"],
+    ts: 1,
+    name: "some name",
+    desc: "some description",
+    misc: {}
+  },
+  {
+    tid: 0,
+    ty: ["msg"],
+    ts: 1,
+    name: "some name",
+    desc: "some description",
+    misc: {}
+  },
+  {
+    tid: 0,
+    ty: ["msg"],
+    ts: 1,
+    name: "some name",
+    desc: "some description",
+    misc: {}
+  }
+]
