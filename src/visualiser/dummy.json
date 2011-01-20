@@ -1,6 +1,14 @@
 [
   {
     tid: 0,
+    ty: ["t_start"],
+    ts: 0,
+    name: "",
+    desc: "",
+    misc: {}
+  },
+  {
+    tid: 0,
     ty: ["msg"],
     ts: 1,
     name: "some name",
@@ -24,11 +32,36 @@
     misc: {}
   },
   {
+    tid: 0,
+    ty: ["t_finish"],
+    ts: 10,
+    name: "",
+    desc: "",
+    misc: {}
+  },
+  {
+    tid: 1,
+    ty: ["t_start"],
+    ts: 3,
+    name: "",
+    desc: "",
+    misc: {}
+  },
+  {
     tid: 1,
     ty: ["msg"],
-    ts: 1,
+    ts: 5,
     name: "some name",
     desc: "message4",
     misc: {}
-  }
+  },
+  {
+    tid: 1,
+    ty: ["t_finish"],
+    ts: 7,
+    name: "",
+    desc: "",
+    misc: {}
+  },
+
 ]
