@@ -17,13 +17,15 @@ let render_msg (thread_elt : Dom.element) msg =
   let msg_elt = (Dom.document#createElement "div" : Dom.element) in
   ignore (msg_elt#_set_className (Msg.ty msg));
   ignore (msg_elt#_set_title (Msg.desc msg));
+  ignore (msg_elt#_get_style#_set_left (string_of_int (2 * (Msg.timestamp msg))));
   ignore (thread_elt#appendChild msg_elt)
 
 let render_thread id thread =
   let thread_elt = (Dom.document#createElement "div" : Dom.element) in
   ignore (thread_elt#_set_className "thread");
-  let thread_text = (Dom.document#createTextNode (string_of_int id) : Dom.text) in
-  ignore (thread_elt#appendChild thread_text);
+  ignore (thread_elt#_get_style#_set_top (string_of_int (25 * id)));
+  (*let thread_text = (Dom.document#createTextNode (string_of_int id) : Dom.text) in
+  ignore (thread_elt#appendChild thread_text);*)
   ignore (main_elt#appendChild thread_elt);
   List.iter (fun m -> render_msg thread_elt m) thread#msgs
 
