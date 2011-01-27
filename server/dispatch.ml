@@ -22,6 +22,8 @@ open Lwt
 
 module Resp = struct
   (* respond with an error *)
+  (* HACK *)
+  let root = "/home/henry/proj/ocaml-frui/src/visualiser"
   let not_found req err = 
     let status = `Not_found in
     let headers = [ "Cache-control", "no-cache" ] in
@@ -43,18 +45,29 @@ module Resp = struct
     let headers = [] in
     Http_response.init ~body ~headers ~status ()
 
+  let get_file file req = 
+    let size = (Unix.stat file).Unix.st_size in
+    let fd = Unix.openfile file [Unix.O_RDONLY] 0o444 in
+    let ic = Lwt_io.of_unix_fd ~close:(fun () -> Unix.close fd; Lwt.return ()) ~mode:Lwt_io.input fd in
+    let t,u = Lwt.wait () in
+    let body = [`Inchan (Int64.of_int size,  ic, u)] in
+    return (dyn req body)
+
+  let events = get_file "/home/henry/proj/ocaml-frui/src/visualiser/dummy.json"
+
   (* index page *)
   let index req =
-    let body = [`String "HELLO WORLD INDEX"] in
+    let body = [`String "HELLO WORLD"] in
     return (dyn req body)
 
   (* dispatch non-file URLs *)
   let dispatch req = function
-    | [] 
-    | "index.html" :: [] ->
-        index req
-    | _ -> 
-        return (not_found req "dispatch")
+    | [], _
+(*    | "" :: "index.html" :: [], _->
+        index req *)
+    | "" :: "events" :: [], _ -> events req
+    | _, path -> try get_file (root ^ path) req
+      with _ -> return (not_found req "dispatch")
 
 end
 
@@ -68,6 +81,5 @@ let t con_id req =
 
   (* normalize path to strip out ../. and such *)
   let path_elem = Neturl.norm_path (Pcre.split ~pat:"/" path) in
-
-  lwt resp = Resp.dispatch req path_elem in
+  lwt resp = Resp.dispatch req (path_elem, path) in
   Http_daemon.respond_with resp

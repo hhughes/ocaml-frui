@@ -3,3 +3,8 @@ _build
 \#*\#
 *.js
 myocamlbuild.ml
+._*
+*.annot
+*.cmo
+*.cmi
+server/server
