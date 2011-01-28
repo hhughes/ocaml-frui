@@ -19,6 +19,7 @@ open Printf
 open Cohttp
 open Cohttpserver
 open Lwt
+open Events
 
 module Resp = struct
   (* respond with an error *)
@@ -54,6 +55,10 @@ module Resp = struct
     return (dyn req body)
 
   let events = get_file "/home/henry/proj/ocaml-frui/src/visualiser/dummy.json"
+  
+  let next_msg req =
+    let body = [`String (create_msg ())] in
+    return (dyn req body)
 
   (* index page *)
   let index req =
@@ -66,6 +71,7 @@ module Resp = struct
 (*    | "" :: "index.html" :: [], _->
         index req *)
     | "" :: "events" :: [], _ -> events req
+    | "" :: "next_msg" :: [], _ -> next_msg req
     | _, path -> try get_file (root ^ path) req
       with _ -> return (not_found req "dispatch")
 

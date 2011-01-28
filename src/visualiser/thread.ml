@@ -1,12 +1,14 @@
 open Msg
 open Logger
+open Fvar
 
 class thread i =
 object (self)
   val mutable msgs : event list = []
   val mutable id = -1
-  val mutable start = -1 (* -1 means the thread start time is unknown *)
-  val mutable finish = -1 (* -1 means the thread is yet to finish *)
+  val start = new fvar (-1)
+  val finish = new fvar (-1)
+
   method add_fn msg =
     let f = new fn in
     begin
@@ -37,8 +39,8 @@ object (self)
       | Not_found _ -> self#add_fn msg
   method parse_msg msg = 
     match Msg.ty msg with
-      | "t_start" -> start <- (Msg.timestamp msg)
-      | "t_finish" -> finish <- (Msg.timestamp msg)
+      | "t_start" -> debug (Printf.sprintf "updating with %d" (Msg.timestamp msg)); Froc.send start#s (Msg.timestamp msg)
+      | "t_finish" -> Froc.send finish#s (Msg.timestamp msg)
       | "fn_start"
       | "fn_finish" -> self#lookup_fn msg
       | "msg" -> msgs <- (E_msg msg) :: msgs
