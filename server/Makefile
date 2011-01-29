@@ -1,7 +1,7 @@
 OCAMLMAKEFILE=OCamlMakefile
 
 SOURCES = events.ml dispatch.ml server.ml
-PACKS = lwt cohttp cohttpserver
+PACKS = json-wheel lwt cohttp cohttpserver
 RESULT = server
 ANNOTATE = yes
 DEBUG = yes
