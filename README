@@ -1,0 +1,9 @@
+Requirements:
+ocamljs
+froc
+cohttp
+cohttpserver
+json-wheel
+
+Installation:
+make
