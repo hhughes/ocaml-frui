@@ -17,5 +17,6 @@ object (self)
   method e = e
   method s = s
   method b = b
-  method sample = Froc.sample b
+  method get = Froc.sample b
+  method set v = Froc.send s v
 end
