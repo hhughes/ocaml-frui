@@ -38,18 +38,22 @@ let _jsonify event = objekt [
 
 let jsonify events = array (List.map _jsonify events)
 
-let count = ref 20
+let count = ref 0
+let thread = ref 0
 
-let next_count () =
+let next count =
   let c = !count in
   count := !count + 1; c
 
+let create_t_start_event () = create_event (next thread) TStart (next count) "ts" "t"
 
-let create_events () = [
-  create_event 0 Msg (next_count ()) "some name" "message";
-  create_event 2 TEnd (next_count ()) "t2" "t2";
-  create_event 2 Msg (next_count ()) "some name" "message";
-  create_event 2 TStart (next_count ()) "t2" "t2";
-]
+let create_t_end_event () = create_event !thread TEnd (next count) "te" "t"
 
-let create_msg () = string_of_json (jsonify (create_events ()))
+let create_msg_event () = create_event !thread Msg (next count) "m" "m"
+
+let create_f_enter_event () = create_event !thread FunStart (next count) "fs" "f"
+
+let create_f_exit_event () = create_event !thread FunEnd (next count) "fe" "f"
+
+
+(*let create_msg () = string_of_json (jsonify (create_events ()))*)

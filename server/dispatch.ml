@@ -57,7 +57,7 @@ module Resp = struct
   let events = get_file "/home/henry/proj/ocaml-frui/src/visualiser/dummy.json"
   
   let next_msg req =
-    let body = [`String (create_msg ())] in
+    let body = [`String (Thread_state.get_events ())] in
     return (dyn req body)
 
   (* index page *)
