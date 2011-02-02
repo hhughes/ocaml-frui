@@ -60,6 +60,10 @@ module Resp = struct
     let body = [`String (Thread_state.get_events ())] in
     return (dyn req body)
 
+  let get_msg req =
+    let body = [`String (Thread_state.get_msg ())] in
+    return (dyn req body)
+
   (* index page *)
   let index req =
     let body = [`String "HELLO WORLD"] in
@@ -72,6 +76,7 @@ module Resp = struct
         index req *)
     | "" :: "events" :: [], _ -> events req
     | "" :: "next_msg" :: [], _ -> next_msg req
+    | "" :: "msg" :: [], _ -> get_msg req
     | _, path -> try get_file (root ^ path) req
       with _ -> return (not_found req "dispatch")
 

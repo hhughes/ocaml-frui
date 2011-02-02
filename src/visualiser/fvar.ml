@@ -11,8 +11,7 @@ object (self)
       let _b = Froc.hold v _e in
       e <- _e;
       s <- _s;
-      b <- _b;
-      Froc.notify_b b (fun v -> Logger.debug (Printf.sprintf "new value %d" v))
+      b <- _b
     end
   method e = e
   method s = s

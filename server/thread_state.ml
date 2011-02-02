@@ -25,6 +25,8 @@ let get_event = function
 
 let t = ref Started
 
+let get_msg () = Json_io.string_of_json (Events.jsonify [Events.create_msg_event ()])
+
 let get_events () =
   let e = get_event !t in
   t := next_state (Random.int 100) !t;
