@@ -40,20 +40,22 @@ let jsonify events = array (List.map _jsonify events)
 
 let count = ref 0
 let thread = ref 0
+let fn = ref 0
 
 let next count =
   let c = !count in
   count := !count + 1; c
 
-let create_t_start_event () = create_event (next thread) TStart (next count) "ts" "t"
+let tick () = next count
 
-let create_t_end_event () = create_event !thread TEnd (next count) "te" "t"
+let create_t_start_event () = create_event !thread TStart (next count) "t" "t"
+
+let create_t_end_event () = create_event (next thread) TEnd (next count) "t" "t"
 
 let create_msg_event () = create_event !thread Msg (next count) "m" "m"
 
-let create_f_enter_event () = create_event !thread FunStart (next count) "fs" "f"
+let create_f_enter_event () = create_event !thread FunStart (next count) (sprintf "f%d" !fn) "f"
 
-let create_f_exit_event () = create_event !thread FunEnd (next count) "fe" "f"
-
+let create_f_exit_event () = create_event !thread FunEnd (next count) (sprintf "f%d" (next fn)) "f"
 
 (*let create_msg () = string_of_json (jsonify (create_events ()))*)
