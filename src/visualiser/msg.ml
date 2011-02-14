@@ -1,7 +1,12 @@
 open Javascript
 open Fvar
 
-class msg = object end
+class msg =
+object
+  val mutable froc_loc = Froc.return ()
+  method froc_loc = froc_loc
+  method set_froc_loc f = froc_loc <- f
+end
 
 class fn =
 object

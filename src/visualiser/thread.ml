@@ -9,9 +9,10 @@ object (self)
   val start = new fvar (-1)
   val finish = new fvar (-1)
   val latest_msg = new fvar (Dummy)
+  val froc_loc = Froc.return ()
   method msg_append msg =
-    latest_msg#set msg;
-    msgs <- msg :: msgs
+    msgs <- msg :: msgs;
+    latest_msg#set msg
   method add_fn msg =
     let f = new fn in
     begin
@@ -52,5 +53,6 @@ object (self)
   method start = start
   method finish = finish
   method latest_msg = latest_msg
+  method froc_loc = froc_loc
   initializer id <- i
 end

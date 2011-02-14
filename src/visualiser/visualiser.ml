@@ -17,10 +17,10 @@ let m1 = new fvar (-1)
 
 let margin a b = ((b - a) * 5) / 100
 
-let t0 = Froc.lift2 (fun m0 m1 -> debug "t0 updated"; m0 - (margin m0 m1)) m0#b m1#b
-let t1 = Froc.lift2 (fun m0 m1 -> debug "t1 updated"; m1 + (margin m0 m1)) m0#b m1#b
+let t0 = Froc.lift (fun m0 -> m0 - 5) m0#b
+let t1 = Froc.lift (fun m1 -> m1 + 5) m1#b
 
-let w () = main_elt#_get_offsetWidth - 4 (* would be nice if this were froc-ed *)
+let w () = 500 (*main_elt#_get_offsetWidth - 4*) (* would be nice if this were froc-ed *)
 
 let add_msg_count () =
   let count_elt = (Dom.document#createElement "div" : Dom.element) in
@@ -34,20 +34,19 @@ let set_msg_loc msg msg_elt s t0 t1 =
   let d = t1 - t0 in
   let w = w () in
   let ts = Msg.timestamp msg in
-  let l = ((ts - t0) * w) / d in
-  let x = ((s - t0) * w) / d in
+  let l = ((ts - s) * w) / d in
   debug (sprintf "updating msg t=%d t0=%d t1=%d" ts t0 t1);
-  ignore (msg_elt#_get_style#_set_left (string_of_int (l - x)))
+  ignore (msg_elt#_get_style#_set_left (string_of_int l))
 
 let set_fun_loc f msg_elt fs fe ts t0 t1 =
+  debug (sprintf "fn: %s, start: %d" f#name f#start#get);
   let fe = if fe < 0 then m1#get else fe in 
   let d = t1 - t0 in
   let w = w () in
-  let l = ((fs - t0) * w) / d in
-  let r = ((fe - t0) * w) / d in
-  let x = ((ts - t0) * w) / d in
-  ignore (msg_elt#_get_style#_set_left (string_of_int (l - x)));
-  ignore (msg_elt#_get_style#_set_width (string_of_int (r - l)))
+  let l = ((fs - ts) * w) / d in
+  let wi = ((fe - fs) * w) / d in
+  ignore (msg_elt#_get_style#_set_left (string_of_int l));
+  ignore (msg_elt#_get_style#_set_width (string_of_int wi))
 
 let set_thread_loc thread_elt ts tf t0 t1 =
   debug (sprintf "updating thread t0=%d t1=%d" t0 t1);
@@ -59,24 +58,23 @@ let set_thread_loc thread_elt ts tf t0 t1 =
   ignore (thread_elt#_get_style#_set_left (string_of_int l));
   ignore (thread_elt#_get_style#_set_width (string_of_int (r - l)))
 
-let render_msg (thread_elt : Dom.element) thread msg = 
-  debug ("creating new event div");
+let create_event_div (thread_elt : Dom.element) classname title =
   let msg_elt = (Dom.document#createElement "div" : Dom.element) in
-  (match msg with
+  ignore (msg_elt#_set_className classname);
+  ignore (msg_elt#_set_title title);
+  ignore (thread_elt#appendChild msg_elt);
+  msg_elt
+
+let render_msg (thread_elt : Dom.element) thread = function
     | E_msg m ->
-      begin
-	ignore (msg_elt#_set_className "msg");
-	ignore (msg_elt#_set_title (Msg.desc m));
-	ignore (Froc.lift3 (set_msg_loc m msg_elt) thread#start#b t0 t1);
-      end
+      debug (sprintf "new msg at %d" (Msg.timestamp m));
+      let div = create_event_div thread_elt "msg" (Msg.desc m) in
+      m#set_froc_loc (Froc.lift3 (set_msg_loc m div) thread#start#b t0 t1)
     | E_fn f ->
-      begin
-	ignore (msg_elt#_set_className "fn");
-	ignore (msg_elt#_set_title f#name);
-	ignore (Froc.lift5 (set_fun_loc f msg_elt) f#start#b f#finish#b thread#start#b t0 t1);
-      end
-    | Dummy -> ());
-  ignore (thread_elt#appendChild msg_elt)
+      debug (sprintf "new fn at %d" f#start#get);
+      let div = create_event_div thread_elt "fn" f#name in
+      f#set_froc_loc (Froc.lift5 (set_fun_loc f div) f#start#b f#finish#b thread#start#b t0 t1)
+    | Dummy -> ()
 
 let render_thread id thread =
   let thread_elt = (Dom.document#createElement "div" : Dom.element) in
