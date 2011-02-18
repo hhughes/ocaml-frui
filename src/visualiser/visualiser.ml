@@ -147,11 +147,11 @@ let load_start _ =
   true
 
 let setup_pie () =
-  pie#counter#add "msg";
-  pie#counter#add "t_start";
-  pie#counter#add "t_finish";
-  pie#counter#add "fn_start";
-  pie#counter#add "fn_finish"
+  pie#new_counter "msg";
+  pie#new_counter "t_start";
+  pie#new_counter "t_finish";
+  pie#new_counter "fn_start";
+  pie#new_counter "fn_finish"
 
 let onload () =
   let vis_button = Dom.document#getElementById "visualise" in

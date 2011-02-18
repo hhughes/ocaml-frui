@@ -34,7 +34,7 @@ object (self)
       let total = float (List.fold_right (fun v a -> v + a) values 0) in
       List.fold_right (
 	fun v s ->
-	  let e = (((float v) *. pi) /. total) +. s in
+	  let e = (((float v) *. pi *. 2.) /. total) +. s in
 	  self#render_slice s e;
 	  e) values 0.
     end
@@ -57,6 +57,7 @@ object (self)
   method new_counter name = 
     begin
       counter#add name;
+      Logger.debug (Printf.sprintf "added %s" name);
       ignore (Froc.lift (fun v -> Logger.debug "render..."; self#render) (counter#behavior name))
     end
   method init =
