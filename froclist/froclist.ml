@@ -4,8 +4,14 @@ open Printf
 let (>>=) = Froc.(>>=)
 
 (* assert list is always in *time* order *)
+
+let counte,counts = Froc.make_event ()
+let count = Froc.hold 0 counte
+
+let inc n = fun c -> return (c + n)
+
 let liste,lists = Froc.make_event ()
-let list = Froc.hold [(return 2); (return 1); (return 0)] liste
+let list = Froc.hold [(count >>= inc 2); (count >>= inc 1); (count >>= inc 0)] liste
 
 let rec leq l1 l2 =
   match (l1, l2) with
@@ -33,4 +39,6 @@ let rec lbind l f =
 
 ignore (lbind list (fun i -> printf "item %d\n" i; return ()));;
 
-ignore (send lists [(return 4); (return 3); (return 2); (return 1); (return 0)]);;
+ignore (send lists [(count >>= inc 4); (count >>= inc 3); (count >>= inc 2); (count >>= inc 1); (count >>= inc 0)]);;
+
+ignore (Froc.send counts ((Froc.sample count) + 1));;

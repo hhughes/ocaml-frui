@@ -9,6 +9,8 @@ let (>>=) = Froc.(>>=)
 
 let main_elt = (Dom.document#getElementById "main" : Dom.element)
 
+let pie = Pie.init main_elt
+
 let threads = Hashtbl.create 10
 let mc = new fvar 0
 
@@ -106,13 +108,16 @@ let add_to_thread msg =
     end;
   mc#set (mc#get + 1)
 
+let loadtopie m = ()
+
 let load_objects o s =
   match s with
     | "success" -> 
       begin
 	let msgs = unmarshall_json o in
 	let msgs = js_to_list msgs in
-	List.iter add_to_thread msgs
+	List.iter add_to_thread msgs;
+	List.iter (fun m -> pie#counter#inc (Msg.ty m)) msgs
       end
     | _ -> debug s
 
@@ -141,6 +146,13 @@ let load_start _ =
   ignore (Dom.window#setInterval run 5.);
   true
 
+let setup_pie () =
+  pie#counter#add "msg";
+  pie#counter#add "t_start";
+  pie#counter#add "t_finish";
+  pie#counter#add "fn_start";
+  pie#counter#add "fn_finish"
+
 let onload () =
   let vis_button = Dom.document#getElementById "visualise" in
   vis_button#_set_onclick (load_json);
@@ -150,7 +162,8 @@ let onload () =
   start_button#_set_onclick (load_start);
   let msg_button = Dom.document#getElementById "msg" in
   msg_button#_set_onclick (load_msg);
-  add_msg_count ()
+  add_msg_count ();
+  setup_pie ()
 ;;
 
 Dom.window#_set_onload onload
