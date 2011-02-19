@@ -1,19 +1,8 @@
 let pi = Javascript.Math.pi
 
-class pie_counter =
-object (self)
-  val counters = Hashtbl.create 10
-  method add (name : string) = Hashtbl.add counters name (new Fvar.fvar 0)
-  method get name = (Hashtbl.find counters name)#get
-  method set name v = (Hashtbl.find counters name)#set v 
-  method inc name = let v = self#get name in Logger.debug (Printf.sprintf "inc to %d" (v+1)); self#set name (v+1)
-  method behavior name = (Hashtbl.find counters name)#b
-  method values = Hashtbl.fold (fun k v a -> self#get k :: a) counters []
-end
-
 class pie (c : Dom.canvas) =
 object (self)
-  val counter = new pie_counter
+  val counter = new Counter.counter
   val width = 100
   val height = 100
   method canvas = c
@@ -57,8 +46,7 @@ object (self)
   method new_counter name = 
     begin
       counter#add name;
-      Logger.debug (Printf.sprintf "added %s" name);
-      ignore (Froc.lift (fun v -> Logger.debug "render..."; self#render) (counter#behavior name))
+      ignore (Froc.lift (fun v -> self#render) (counter#behavior name))
     end
   method init =
     begin

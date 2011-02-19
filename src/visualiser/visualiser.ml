@@ -10,6 +10,7 @@ let (>>=) = Froc.(>>=)
 let main_elt = (Dom.document#getElementById "main" : Dom.element)
 
 let pie = Pie.init main_elt
+let cloud = Cloud.init main_elt
 
 let threads = Hashtbl.create 10
 let mc = new fvar 0
@@ -108,7 +109,20 @@ let add_to_thread msg =
     end;
   mc#set (mc#get + 1)
 
-let loadtopie m = ()
+let loadtopie m = pie#counter#inc (Msg.ty m)
+let loadtocloud m = 
+  let loadword w =
+    if not (cloud#counter#mem w) then cloud#new_counter w;
+    cloud#counter#inc w
+  in
+  let name = Msg.name m in
+  let desc = Msg.desc m in
+  let split str sep =
+    let s = Javascript.js_string_of_string str in
+    s#split sep
+  in
+  Array.iter loadword (split name " ");
+  Array.iter loadword (split desc " ")
 
 let load_objects o s =
   match s with
@@ -117,7 +131,8 @@ let load_objects o s =
 	let msgs = unmarshall_json o in
 	let msgs = js_to_list msgs in
 	List.iter add_to_thread msgs;
-	List.iter (fun m -> pie#counter#inc (Msg.ty m)) msgs
+	List.iter loadtopie msgs;
+	List.iter loadtocloud msgs
       end
     | _ -> debug s
 
