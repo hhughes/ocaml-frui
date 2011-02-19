@@ -4,15 +4,12 @@ open Fvar
 
 class thread i =
 object (self)
-  val mutable msgs : event list = []
+  val mutable msgs = new Flist.flist
   val mutable id = -1
   val start = new fvar (-1)
   val finish = new fvar (-1)
-  val latest_msg = new fvar (Dummy)
   val froc_loc = Froc.return ()
-  method msg_append msg =
-    msgs <- msg :: msgs;
-    latest_msg#set msg
+  method msg_append msg = msgs#push (Froc.return (msg))
   method add_fn msg =
     let f = new fn in
     begin
@@ -26,10 +23,10 @@ object (self)
   method lookup_fn msg =
     try
       	begin
-	  let e = List.find (fun m -> match m with
+	  let e = List.find (fun m -> match Froc.sample m with
 	    | E_fn f -> (f#name) = (Msg.name msg)
-	    | _ -> false) msgs in
-	  match e with
+	    | _ -> false) msgs#list in
+	  match (Froc.sample e) with
 	    | E_fn f ->
 	      begin
 		match Msg.ty msg with
@@ -52,7 +49,6 @@ object (self)
   method msgs = msgs
   method start = start
   method finish = finish
-  method latest_msg = latest_msg
   method froc_loc = froc_loc
   initializer id <- i
 end

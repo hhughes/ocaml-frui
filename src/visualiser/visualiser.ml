@@ -97,7 +97,7 @@ let add_to_thread msg =
       let thread = new thread tid in
       Hashtbl.add threads tid (thread);
       let thread_elt = render_thread tid thread in
-      ignore (Froc.lift (render_msg thread_elt thread) thread#latest_msg#b)
+      thread#msgs#lift (render_msg thread_elt thread)
     end);
   let thread = Hashtbl.find threads tid in
   thread#parse_msg msg;

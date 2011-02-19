@@ -1,9 +1,7 @@
-let second (a,b) = b
-
 class ['a] fvar (v:'a) =
 object (self)
   val mutable e = Froc.never
-  val mutable s = second (Froc.make_event ())
+  val mutable s = snd (Froc.make_event ())
   val mutable b = Froc.return v
   initializer
     begin
