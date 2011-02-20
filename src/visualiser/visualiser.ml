@@ -26,7 +26,7 @@ let margin a b = (b -. a) *. 0.05
 let t0 = Froc.lift (fun m0 -> m0 -. 5.) m0#b
 let t1 = Froc.lift (fun m1 -> m1 +. 5.) m1#b
 
-let w () = 500. (*main_elt#_get_offsetWidth - 4*) (* would be nice if this were froc-ed *)
+let w () = float_of_int (visualiser_elt#_get_offsetWidth - 4) (* would be nice if this were froc-ed *)
 
 let add_msg_count () =
   let count_elt = (Dom.document#createElement "div" : Dom.element) in
@@ -44,6 +44,7 @@ let set_msg_loc msg msg_elt s t0 t1 =
   ignore (msg_elt#_get_style#_set_left (string_of_int (int_of_float l)))
 
 let set_fun_loc f msg_elt fs fe ts t0 t1 =
+  let fs = if fs < 0. then m0#get else fs in
   let fe = if fe < 0. then m1#get else fe in 
   let d = t1 -. t0 in
   let w = w () in
@@ -53,6 +54,7 @@ let set_fun_loc f msg_elt fs fe ts t0 t1 =
   ignore (msg_elt#_get_style#_set_width (string_of_int (int_of_float wi)))
 
 let set_thread_loc thread_elt ts tf t0 t1 =
+  let ts = if ts < 0. then m0#get else ts in
   let tf = if tf < 0. then m1#get else tf in
   let d = t1 -. t0 in
   let w = w () in
@@ -80,7 +82,7 @@ let render_msg (thread_elt : Dom.element) thread = function
 let render_thread id thread =
   let thread_elt = (Dom.document#createElement "div" : Dom.element) in
   ignore (thread_elt#_set_className "thread");
-  ignore (thread_elt#_get_style#_set_top (string_of_int (25 * id)));
+  ignore (thread_elt#_get_style#_set_top (string_of_int (25 * thread#index)));
   ignore (Froc.lift4 (set_thread_loc thread_elt) thread#start#b thread#finish#b t0 t1);
   (*let thread_text = (Dom.document#createTextNode (string_of_int id) : Dom.text) in
   ignore (thread_elt#appendChild thread_text);*)

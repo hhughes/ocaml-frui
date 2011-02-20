@@ -2,6 +2,12 @@ open Msg
 open Logger
 open Fvar
 
+let t_index = ref 0
+let next_index () =
+  let i = !t_index in
+  t_index := i + 1;
+  i
+
 class thread i =
 object (self)
   val mutable msgs = new Flist.flist
@@ -9,6 +15,7 @@ object (self)
   val start = new fvar (-1.)
   val finish = new fvar (-1.)
   val froc_loc = Froc.return ()
+  val index = next_index ()
   method msg_append msg = msgs#push (Froc.return (msg))
   method add_fn msg =
     let f = new fn in
@@ -50,5 +57,6 @@ object (self)
   method start = start
   method finish = finish
   method froc_loc = froc_loc
+  method index = index
   initializer id <- i
 end
