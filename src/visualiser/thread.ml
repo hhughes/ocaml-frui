@@ -6,8 +6,8 @@ class thread i =
 object (self)
   val mutable msgs = new Flist.flist
   val mutable id = -1
-  val start = new fvar (-1)
-  val finish = new fvar (-1)
+  val start = new fvar (-1.)
+  val finish = new fvar (-1.)
   val froc_loc = Froc.return ()
   method msg_append msg = msgs#push (Froc.return (msg))
   method add_fn msg =

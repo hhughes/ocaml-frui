@@ -41,15 +41,32 @@
       right: 5px;
       bottom: 5px;
       }
-      canvas.pie {
+      div#visualiser {
       position: absolute;
-      left: 5px;
-      bottom: 5px;
+      left: 0px;
+      top: 0px;
+      right: 200px;
+      height: 400px;
       }
-      canvas.cloud {
+      div#widgets {
       position: absolute;
-      left: 110px;
-      bottom: 5px;
+      top: 0px;
+      right: 0px;
+      height: 400px;
+      }
+      div#pie {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      width: 200px;
+      height: 200px;
+      }
+      div#cloud {
+      position: absolute;
+      right: 0px;
+      top: 200px;
+      width: 200px;
+      height: 200px;
       }
     </style>
   </head>
@@ -57,7 +74,13 @@
     <div id='top'>
       Enter url of json file: <input type='text' id='json_url' value='http://localhost:8080/events' /><button id='visualise' type='button'>Visualise</button><button id='next_msg' type='button'>Add</button><button id='start' type='button'>Start</button><button id='msg' type='button'>Msg</button>
     </div>
-    <div id='main'></div>
+    <div id='main'>
+      <div id='visualiser'></div>
+      <div id='widgets'>
+	<div id='pie'></div>
+	<div id='cloud'></div>
+      </div>
+    </div>
     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
     <script src="./visualiser.js"></script>
   </body>

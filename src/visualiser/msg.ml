@@ -11,8 +11,8 @@ end
 class fn =
 object
   inherit msg
-  val mutable start = new fvar (-1)
-  val mutable finish = new fvar (-1)
+  val mutable start = new fvar (-1.)
+  val mutable finish = new fvar (-1.)
   val mutable name = ""
   method set_name n = name <- n
   method name = name
@@ -26,7 +26,7 @@ module Msg =
 struct
   external threadId : msg -> int = ".tid"
   external ty : msg -> string = ".ty"
-  external timestamp : msg -> int = ".ts"
+  external timestamp : msg -> float = ".ts"
   external name : msg -> string = ".name"
   external desc : msg -> string = ".desc"
   external misc : msg -> 'a = ".misc"
