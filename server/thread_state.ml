@@ -16,16 +16,16 @@ let next_state p = function
   | Stop -> Started
 
 let get_event = function
-  | Started -> [Events.create_t_start_event ()]
-  | Running -> Events.tick (); []
-  | FunEnter -> in_fun := true; [Events.create_f_enter_event ()]
-  | FunExit -> in_fun:= false; [Events.create_f_exit_event ()]
-  | Msg -> [Events.create_msg_event ()]
-  | Stop -> [Events.create_t_end_event ()]
+  | Started -> [Events.create Events.TStart]
+  | Running -> []
+  | FunEnter -> in_fun := true; [Events.create Events.FunStart]
+  | FunExit -> in_fun:= false; [Events.create Events.FunEnd]
+  | Msg -> [Events.create Events.Msg]
+  | Stop -> [Events.create Events.TEnd]
 
 let t = ref Started
 
-let get_msg () = Json_io.string_of_json (Events.jsonify [Events.create_msg_event ()])
+let get_msg () = Json_io.string_of_json (Events.jsonify [Events.create Events.Msg])
 
 let rec get_events () =
   let e = get_event !t in

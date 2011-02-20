@@ -3,6 +3,8 @@ open Json_type
 open Build
 open Json_io
 
+let _ = Random.init (int_of_float (Unix.gettimeofday ()))
+
 type event_type = Msg | FunStart | FunEnd | TStart | TEnd
 
 type event = {
@@ -38,26 +40,34 @@ let _jsonify event = objekt [
 
 let jsonify events = array (List.map _jsonify events)
 
-let count = ref 0
-let thread = ref 0
-let fn = ref 0
+let get_thread () = Random.int 10
+let fns = Hashtbl.create 10
 
 let time = Unix.gettimeofday
 
-let next count =
-  let c = !count in
-  count := !count + 1; c
-
-let tick () = ()
-
-let create_t_start_event () = create_event !thread TStart (time ()) "t" "t"
-
-let create_t_end_event () = create_event (next thread) TEnd (time ()) "t" "t"
-
-let create_msg_event () = create_event !thread Msg (time ()) "m" "m"
-
-let create_f_enter_event () = create_event !thread FunStart (time ()) (sprintf "f%d" !fn) "f"
-
-let create_f_exit_event () = create_event !thread FunEnd (time ()) (sprintf "f%d" (next fn)) "f"
+let create ty =
+  let tid = get_thread () in
+  let ts = time () in
+  match ty with
+    | TStart
+    | TEnd -> create_event tid ty ts "t" "t"
+    | Msg -> create_event tid ty ts "m" "m"
+    | FunStart ->
+      if not (Hashtbl.mem fns tid) then Hashtbl.add fns tid (-1,[]);
+      let c,s = Hashtbl.find fns tid in
+      Hashtbl.replace fns tid (c+1, c+1 :: []);
+      create_event tid ty ts (sprintf "f%d" c) "f"
+    | FunEnd -> 
+      if Hashtbl.mem fns tid then
+	begin
+	  let c,s = Hashtbl.find fns tid in
+	  if List.length s > 0 then
+	    begin
+	      Hashtbl.replace fns tid (c, List.tl s);
+	      create_event tid ty ts (sprintf "f%d" (List.hd s)) "f"
+	    end
+	  else create_event tid Msg ts "no_open_fns" "no_open_fns"
+	end
+      else create_event tid Msg ts "no_thread" "no_thread"
 
 (*let create_msg () = string_of_json (jsonify (create_events ()))*)
