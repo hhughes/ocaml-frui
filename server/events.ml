@@ -42,15 +42,14 @@ let jsonify events = array (List.map _jsonify events)
 
 let get_thread () = Random.int 10
 
-let fn = ref 0
 let time = Unix.gettimeofday
 let inc c = let v = !c in c := v+1; v
 
-let create tid ty =
+let create tid fid ty =
   let ts = time () in
   match ty with
     | TStart
     | TEnd -> create_event tid ty ts "t" "t"
     | Msg -> create_event tid ty ts "m" "m"
-    | FunStart -> create_event tid ty ts (sprintf "f%d" !fn) "f"
-    | FunEnd -> create_event tid ty ts (sprintf "f%d" (inc fn)) "f"
+    | FunStart -> create_event tid ty ts (sprintf "f%d" fid) "f"
+    | FunEnd -> create_event tid ty ts (sprintf "f%d" fid) "f"

@@ -117,12 +117,8 @@ let loadtocloud m =
   in
   let name = Msg.name m in
   let desc = Msg.desc m in
-  let split str sep =
-    let s = Javascript.js_string_of_string str in
-    s#split sep
-  in
-  Array.iter loadword (split name " ");
-  Array.iter loadword (split desc " ")
+  Array.iter loadword (Javascript.Js_string.split name " ");
+  Array.iter loadword (Javascript.Js_string.split desc " ")
 
 let load_objects o s =
   match s with
@@ -158,7 +154,7 @@ let load_msg _ = load "msg"
 let run () = ignore (load_next ())
 
 let load_start _ = 
-  ignore (Dom.window#setInterval run 5.);
+  ignore (Dom.window#setInterval run 500.);
   true
 
 let setup_pie () =
