@@ -3,6 +3,7 @@ type thread_state = Started | Running | FunEnter | FunExit | Msg | Stop
 
 let _ = Random.init (int_of_float (Unix.gettimeofday ()))
 let in_fun = ref false
+let tid = ref 0
 
 let enterexit () = if !in_fun then FunExit else FunEnter
 let stopexit () = if !in_fun then FunExit else Stop (* dont let us stop when in a function *)
@@ -16,16 +17,16 @@ let next_state p = function
   | Stop -> Started
 
 let get_event = function
-  | Started -> [Events.create Events.TStart]
+  | Started -> [Events.create !tid Events.TStart]
   | Running -> []
-  | FunEnter -> in_fun := true; [Events.create Events.FunStart]
-  | FunExit -> in_fun:= false; [Events.create Events.FunEnd]
-  | Msg -> [Events.create Events.Msg]
-  | Stop -> [Events.create Events.TEnd]
+  | FunEnter -> in_fun := true; [Events.create !tid Events.FunStart]
+  | FunExit -> in_fun:= false; [Events.create !tid Events.FunEnd]
+  | Msg -> [Events.create !tid Events.Msg]
+  | Stop -> let i = !tid in tid := i+1; [Events.create i Events.TEnd]
 
 let t = ref Started
 
-let get_msg () = Json_io.string_of_json (Events.jsonify [Events.create Events.Msg])
+let get_msg () = Json_io.string_of_json (Events.jsonify [Events.create !tid Events.Msg])
 
 let rec get_events () =
   let e = get_event !t in
