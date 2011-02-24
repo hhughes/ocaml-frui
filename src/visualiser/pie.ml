@@ -5,6 +5,7 @@ object (self)
   val counter = new Counter.counter
   val width = 100
   val height = 100
+  method f_width = float_of_int width
   method canvas = c
   method counter = counter
   method render_slice s e =
@@ -12,8 +13,11 @@ object (self)
       let context = c#getContext "2d" in
       context#_set_strokeStyle "red";
       context#beginPath;
-      context#arc 50. 50. 28. s e false;
-      context#lineTo 50. 50.;
+      let x = self#f_width /. 2. in
+      let y = self#f_width /. 2. in
+      let r = x -. 7. in
+      context#arc x y r s e false;
+      context#lineTo x y;
       context#closePath;
       context#stroke
     end
@@ -32,14 +36,17 @@ object (self)
       let context = c#getContext "2d" in
       context#_set_strokeStyle "black";
       context#beginPath;
-      context#arc 50. 50. 30. 0. (pi *. 2.) false; 
+      let x = self#f_width /. 2. in
+      let y = self#f_width /. 2. in
+      let r = x -. 5. in
+      context#arc x y r 0. (pi *. 2.) false;
       context#closePath;
       context#stroke
     end
   method render = 
     begin
       let context = c#getContext "2d" in
-      context#clearRect 0. 0. 100. 100.;
+      context#clearRect 0. 0. (float_of_int width) (float_of_int height);
       self#render_outline;
       self#render_all
     end
@@ -58,7 +65,7 @@ object (self)
   initializer self#init
 end
 
-let init (elt : Dom.element) =
+let init (elt : Dom.element) t0 t1 =
   let pie_canvas = (Dom.document#createElement "canvas" : Dom.canvas) in
   let p = new pie pie_canvas in
   ignore (elt#appendChild p#canvas);

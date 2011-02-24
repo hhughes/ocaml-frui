@@ -1,4 +1,4 @@
-JS=visualiser.js
+JS=main.js
 
 all: myocamlbuild.ml
 	ocamlbuild $(JS); ln -s _build/$(JS) .

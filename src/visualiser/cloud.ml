@@ -43,9 +43,9 @@ object (self)
   initializer self#init
 end
 
-let init (elt : Dom.element) =
+let init (elt : Dom.element) t0 t1 =
   let cloud_canvas = (Dom.document#createElement "canvas" : Dom.canvas) in
-  let c = new cloud cloud_canvas  in
+  let c = new cloud cloud_canvas in
   ignore (elt#appendChild c#canvas);
   c
 ;;
