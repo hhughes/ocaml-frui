@@ -9,6 +9,7 @@ let visualiser_elt = (Dom.document#getElementById "visualiser" : Dom.element)
 let pie_elt = (Dom.document#getElementById "pie" : Dom.element)
 let cloud_elt = (Dom.document#getElementById "cloud" : Dom.element)
 let msg_count_elt = (Dom.document#getElementById "msg_count" : Dom.element)
+let timeline_elt = (Dom.document#getElementById "timeline" : Dom.element)
 
 let m0 = new fvar (-1.)
 let m1 = new fvar (-1.)
@@ -22,6 +23,7 @@ let pie = Pie.init pie_elt t0 t1
 let cloud = Cloud.init cloud_elt t0 t1
 let visualiser = Visualiser.init visualiser_elt t0 t1 m0 m1
 let msg_count = Msg_count.init msg_count_elt t0 t1
+let timeline = Timeline.init timeline_elt m0 m1
 
 let load_pie m = pie#counter#inc (Msg.ty m)
 
@@ -39,11 +41,14 @@ let load_visualiser m = visualiser#add_to_thread m
 
 let load_msg_count m = msg_count#inc
 
+let load_timeline m = () (* TODO *)
+
 let load_m m =
   load_pie m;
   load_cloud m;
   load_visualiser m;
-  load_msg_count m
+  load_msg_count m;
+  load_timeline m
 
 let load_objects o s =
   match s with
@@ -74,10 +79,19 @@ let load_next _ = load "next_msg"
 
 let load_msg _ = load "msg"
 
-let run () = ignore (load_next ())
+let run_id = ref None
+let run_count = ref 0
+
+let run () =
+  let count = !run_count in
+  if count = 0 then Dom.window#clearInterval (match !run_id with Some i -> i)
+  else
+  run_count := count - 1;
+  ignore (load_next ())
 
 let load_start _ = 
-  ignore (Dom.window#setInterval run 500.);
+  run_count := 200;
+  run_id := Some (Dom.window#setInterval run 500.);
   true
 
 let setup_pie () =
