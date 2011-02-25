@@ -24,15 +24,12 @@ let create_button (e : Dom.element) (input : Dom.input) ty set_input =
 let create e v =
   let input = (Dom.document#createElement "input" : Dom.input) in
   let set_input () =
-    Logger.debug "spinner changed";
-    let x = int_of_float v#get in
     let i = int_of_string input#_get_value in
-    if x <> i then v#set (float_of_int i)
+    v#set (float_of_int i)
   in
   let set_value i =
     let x = int_of_float i in
-    let i = int_of_string input#_get_value in
-    if x <> i then input#_set_value (string_of_int x)
+    input#_set_value (string_of_int x)
   in
   input#_set_value (string_of_int (int_of_float v#get));
   input#_set_onchange set_input;
