@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <style type="text/css">
+      div#main {
+      position: absolute;
+      left: 5px;
+      top: 36px;
+      right: 5px;
+      bottom: 5px;
+      border: solid black 1px;
+      }
+      div.room {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: solid black 1px;
+      }
+      div#spinner {
+      display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="load" type="button">Load</button>
+    <div id="spinner"></div>
+    <button id="play" type="button">></button>
+    <div id="map"><img src="./gates1.png" /></div>
+    <div id="main"></div>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4/jquery.min.js"></script>
+    <script src="./main.js"></script>
+  </body>
+</html>

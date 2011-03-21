@@ -1,0 +1,2 @@
+<*.ml> : syntax_camlp4o, pkg_dom, pkg_camlp4, pkg_jslib.inline, pkg_froc-dom, pkg_jquery, pkg_javascript, pkg_thread
+<*.js> : syntax_camlp4o, pkg_dom, pkg_camlp4, pkg_jslib.inline, pkg_froc-dom, pkg_jquery, pkg_javascript, pkg_thread

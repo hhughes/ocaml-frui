@@ -24,7 +24,7 @@ open Events
 module Resp = struct
   (* respond with an error *)
   (* HACK *)
-  let root = "/home/henry/proj/ocaml-frui/src/visualiser"
+  let root = "/home/henry/proj/ocaml-frui/src"
   let not_found req err = 
     let status = `Not_found in
     let headers = [ "Cache-control", "no-cache" ] in
@@ -55,7 +55,13 @@ module Resp = struct
     return (dyn req body)
 
   let events = get_file "/home/henry/proj/ocaml-frui/src/visualiser/dummy.json"
-  
+  let pop = get_file "/home/henry/proj/datasources/worldbank/pop.json"
+  let gdp = get_file "/home/henry/proj/datasources/worldbank/gdp.json"
+  let life = get_file "/home/henry/proj/datasources/worldbank/life.json"
+  let elec = get_file "/home/henry/proj/datasources/elec/primary-cs1-riser/G-lighting/S-m22-2011-01.json"
+  let elec2 = get_file "/home/henry/proj/datasources/elec/primary-cs1-riser/F-lighting/S-m23-2011-01.json"
+  let elec3 = get_file "/home/henry/proj/datasources/elec/primary-cs1-riser/S-lighting/S-m25-2011-01.json"
+
   let next_msg req =
     let body = [`String (Thread_state.get_events ())] in
     return (dyn req body)
@@ -71,6 +77,12 @@ module Resp = struct
 (*    | "" :: "index.html" :: [], _->
         index req *)
     | "" :: "events" :: [], _ -> events req
+    | "" :: "pop" :: [], _ -> pop req
+    | "" :: "gdp" :: [], _ -> gdp req
+    | "" :: "life" :: [], _ -> life req
+    | "" :: "elec" :: [], _ -> elec req      
+    | "" :: "elec2" :: [], _ -> elec2 req      
+    | "" :: "elec3" :: [], _ -> elec3 req      
     | "" :: "next_msg" :: [], _ -> next_msg req
     | _, path -> try get_file (root ^ path) req
       with _ -> return (not_found req "dispatch")
