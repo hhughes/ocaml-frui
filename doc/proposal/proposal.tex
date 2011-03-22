@@ -1,0 +1,102 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{hyperref}
+\begin{document}
+
+  \begin{titlepage}
+    \vfil
+    \centerline{\Large Computer Science Tripos Project Proposal}
+    \vspace{0.4in}
+    \centerline{\Huge Functionally Reactive Web User Interfaces }
+    \vspace{0.4in}
+    \centerline{\large Henry Hughes, Jesus College}
+    \vspace{0.3in}
+    \vfill
+    \centerline{{\bf Originator:} Dr A. Madhavapeddy}
+    \vspace{0.1in}
+    \centerline{{\bf Project Supervisor:} Dr A. Madhavapeddy}
+    \vspace{0.1in}
+    \centerline{{\bf Director of Studies:} Prof J. Bacon}
+    \vspace{0.1in}
+    \centerline{{\bf Project Overseers:} Dr T. Griffin \& Dr M. Kuhn}
+    \vspace{0.3in}
+    \centerline{\large \today}
+    \vfil
+  \end{titlepage}
+
+  % \setlength{\parindent}{0cm}
+  % \setlength{\parskip}{10pt plus2mm minus2mm}
+  \section{Introduction}
+  Recently there has been a lot of focus on optimising web browsers to cope with more complex and content rich websites. This has begun to bridge the gap between the computing power of an application running natively on a machine and one running inside a web browser.
+  %Content rich web applications are becoming more and more popular. This is due to the ever increasing computing power of machines, browsers being optimised to load pages and execute code more efficiently and many user machines being permanently connected to the Internet.
+  \\
+  Web applications have several advantages over native applications. They run in a web browser, so the browser developer is responsible for maintaining cross compatibility.\footnote{Although there is some degree of cross-browser compatibility to be considered.} To update a native application, the update has to be pushed to all machines, if the user decides to use the application offline they will not get the updated version. Web applications will retrieve the new version when the browser page is re-fetched. The web browser acts as a safe environment for an application to run. The JavaScript standard and the browser protect the application from doing malicious things to the user's machine.
+  \\
+  This makes web applications sometimes a good replacement for native ones, most of the time we can do just as much as can be done natively. This idea is an extension of one of the Web 2.0 aims, to make websites more interactive rather than just providing a passive view of some information.
+  \\
+  Web applications often use JavaScript to facilitate interaction with the user. This code is executed on the client (in the browser) and is used to modify the Document Object Model (DOM). It is weakly typed, interpreted at run-time and not object orientated. These features make it hard to manage and maintain very large pieces of JavaScript code, which many web applications are. Other languages can give us certain guarantees about the reliability of the code, have a notion of objects and can be written much more concisely. One language which meets these criteria is OCaml. OCaml is type safe (although it does provide libraries which offer unsafe operations) and objective. It is a functional programming language so it is more concise than JavaScript (which is an imperative language). A web application written in a language like this would be easier to maintain when the code-base became very large. The aim of this project is to create a library which can be used to create a windowed web user interface.
+  \section{Starting Point}
+  This project will build a library which interfaces with two other OCaml projects. \emph{ocamljs}\footnote{\url{http://jaked.github.com/ocamljs}} and \emph{froc}\footnote{\url{http://jaked.github.com/froc}}.
+  \\
+  \emph{ocamljs} is a back-end for the OCaml compiler which outputs programs in JavaScript, rather than byte-code, and provides bindings to the browser DOM. \emph{froc} is a library for functional reactive programming in OCaml. Functional reactive programming is the idea that changes to inputs to a programs should propagate through the code and update dependant variables using callbacks. This is how a good user interface works, e.g. when the user clicks a button we want to call an event handler, we don't want to poll for the mouse button being pressed. \emph{froc} also uses self adjusting computation which incrementally recomputes expressions, only performing the recalculation if the dependant values change. This is a good feature to have when programming with a big tree (the DOM) so that the whole thing isn't recomputed each time. Using this approach with a web application should result in some JavaScript which is reasonably efficient.
+  \\
+  The library created should be implement similar functionality to existing libraries for creating web user interfaces. For example jQuery, a JavaScript library which provides helper functions for creating websites and applications. 
+  \section{Substance and Structure}
+  The aim of this project is to create a library which can be used with \emph{ocamljs} and \emph{froc} to create windowed web applications. To demonstrate this library I shall create a small web application which displays a graph of some data in a window. In order to limit the number of features the library has I shall only implement enough to demonstrate the graphing application.
+  \\
+  The graphing application will show data generated by another OCaml process running on the server. In the very basic case this data will consist of random values, the graph will plot these values verses time. As more data is produced the graph on the web page will dynamically update using the \emph{froc} library described above. This could be extended to showing a real statistic such as the machine load average. The data generator will communicate with the client-side JavaScript using \emph{orpc}\footnote{\url{http://jaked.github.com/orpc/}}, a tool for generating RPC clients and servers for use with \emph{ocamljs}.
+  \\
+  In order to compare this example to a regular JavaScript solution I will also implement another version of the same application using JavaScript and AJAX, connecting to the same OCaml data generator (with some modifications to serve up the XML required for AJAX).
+  \\
+  The most basic function the UI library should implement is to provide the user with a window within the browser which can be moved around and can be closed. The function will provide an HTML element (such as a DIV) which the user can fill with some contents. The library should also manage multiple windows, making the last active one topmost and maintaining the z-order of the rest.
+  \\
+  A JavaScript profiler, such as the one bundled with Google Chrome, will be used to compare performance of different implementations.
+  \section{Success Criteria}
+  With some knowledge of OCaml a developer should be able to use the library to create a windowed web application. The library must include at least the following functionality:
+  \begin{itemize}
+  \item Create, move, close, re-order and resize windows;
+  \item Provide a container element for the window contents.
+  \end{itemize}
+  To demonstrate the library a graphing application will be built on top of it, this should implement the following:
+  \begin{itemize}
+  \item Display a line graph of data from the server;
+  \item Update dynamically when new data becomes available;
+  \item Perform comparatively well compared to an JavaScript / AJAX solution.
+  \end{itemize}
+  \section{Plan of Work}
+    The most intensive period of the work plan will be the Christmas vacation so this is when the majority of the work will get done.
+  \subsection{Michaelmas Term 2010}
+    \emph{22/10/10 - 03/12/10 (6 weeks)}
+    \begin{itemize}
+      \item Decide on a method for building the OCaml libraries serving the web applications (i.e. find a machine to use) and set up revision control system \emph{(1 week)}
+      \item Learn how to use \emph{ocamljs}, \emph{froc} and \emph{orpc} \emph{(1 week)}
+      \item Plan library functionality \emph{(1 week)}
+      \item Begin implementation of library code (windowing UI) \emph{(3 weeks})
+    \end{itemize}
+  \subsection{Christmas Vacation 2010}
+    \emph{03/12/10 - 14/01/11 (6 weeks)}
+    \begin{itemize}
+      \item Finish implementation of library code (windowing UI) \emph{(1 week)}
+      \item Write graphing application and server data generator \emph{(3 weeks)}
+      \item Create regular JavaScript solution \emph{(2 weeks)}
+    \end{itemize}
+  \subsection{Lent Term 2011}
+    \emph{14/01/11 - 18/03/11 (9 weeks)}
+    \begin{itemize}
+      \item Create regular JavaScript solution \emph{(3 weeks)}
+      \item Write performance tests - each should test both solutions \emph{(3 weeks)}
+      \item Finish writing tests and analyse results \emph{(3 weeks)}
+    \end{itemize}
+  \subsection{Easter Vacation 2011}
+    \emph{18/03/11 - 22/04/11 (5 weeks)}
+    \begin{itemize}
+      \item Write up evaluation section of project report \emph{(3 weeks)}
+      \item Write up conclusions \emph{(2 weeks)}
+    \end{itemize}
+  \subsection{Easter Term 2011}
+    \emph{22/04/11 - 20/05/11 (4 weeks)}
+    \begin{itemize}
+      \item Incremental improvements to report \emph{(3 weeks)}
+      \item Print final copy \emph{(1 week)}
+    \end{itemize}
+  
+\end{document}

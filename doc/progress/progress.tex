@@ -1,0 +1,53 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{hyperref}
+\usepackage{parskip}
+\begin{document}
+
+  \begin{titlepage}
+    \vfil
+    \centerline{\Large Computer Science Tripos Project Progress Report}
+    \vspace{0.4in}
+    \centerline{\Huge Functionally Reactive Web User Interfaces }
+    \vspace{0.4in}
+    \centerline{\large Henry Hughes, Jesus College}
+    \vspace{0.3in}
+    \vfill
+    \centerline{{\bf Originator:} Dr A. Madhavapeddy}
+    \vspace{0.1in}
+    \centerline{{\bf Project Supervisor:} Dr A. Madhavapeddy}
+    \vspace{0.1in}
+    \centerline{{\bf Director of Studies:} Prof J. Bacon}
+    \vspace{0.1in}
+    \centerline{{\bf Project Overseers:} Dr T. Griffin \& Dr M. Kuhn}
+    \vspace{0.3in}
+    \centerline{\large \today}
+    \vfil
+  \end{titlepage}
+  
+  \section{Project Focus}
+Initial investigations into froc\footnote{\url{http://jaked.github.com/froc}} were used to learn about how froc programs generated dynamic data-graphs which take changes to inputs and inject them where needed into the control flow model. A good use case for this is a graph showing temporal data. The input to the froc data-graph is the UI's data at a given time. As the inputs change the updates are made to the UI as needed. Rendering moving data and efficiently recalculating aggregate UI elements is currently difficult and requires a lot of book-work. Froc does this work for the programmer so they only have to be concerned with what data goes where.
+
+The project began by looking at how ocamljs\footnote{\url{http://jaked.github.com/ocamljs}} and froc can be used to make user interfaces. A good use case of froc is the situation described above. As a result the project now focuses on how froc can be leveraged to represent data sets in different and hopefully more meaningful ways than could be done with a standard graph and a control flow programming model. This change has had little impact on the preparation and tools required by project. It is still be written in OCaml and compiled to Javascript using ocamljs.
+
+\section{Work Done}
+
+\emph{Understand self-adjusting computation.} Read up on self-adjusting computation, used jaked's blog\footnote{\url{http://ambassadortothecomputers.blogspot.com/}}.
+
+\emph{Become familiar with ocamljs and froc.} Create some 'Hello World' style examples. Used ocamljs and froc examples to help with this. Then moved to a more complicated example -- a web-page with a button that creates 'windows' that can be moved and resized.
+
+\emph{Create the log visualiser.} Use ocamljs and froc to parse json messages which are either debug messages, function enter/returns or thread start/ends. Render this data onto a web-page. froc allows just the parts of the page that have changed to be updated.
+
+\emph{Use cohttpserver (ocaml) to serve fake events and the web page itself.} Implement a state machine which has set probabilities of progressing to the various next states. This will create a dummy (but hopefully slightly interesting) set of data which can be generated on the fly and can be displayed on the page.
+
+\section{Revised Work Schedule}
+\emph{Dynamically updating dashboard (for the log visualiser).} Improve the current version of the log visualiser by add the ability to scroll back and forward in time and zoom in and out of certain time ranges. Implement two controls for the user interface. One of these will show a pie chart of all the types of messages received, this will update using froc as new messages arrive. The other control will show a call stack for each thread, every time a function is entered it is pushed onto the stack and each time it is exited it is pushed off the stack. This will require extending the object model to allow n-deep functions (currently does not support entering functions from within a function). \emph{(2 weeks)}
+
+\emph{Dummy events generator.} Make the events more realistic by having a thread (per thread on the visualiser) which will randomly send events to an event queue which is flushed each time a client performs a GET. This will mean that more than one event can occur at any time. \emph{(1 week)}
+
+\emph{Profile the Javascript output code.} Take a look at some profiling outputs (which can be performed using Google Chrome) to see if the froc overhead is costing a significant amount of the processing time. Perhaps make a modified version of the code which doesn't use froc to see if this performs significantly differently. \emph{(1 week)}
+
+\emph{Look into displaying other statistics.} If an interesting data source can be found from somewhere like the Twitter APIs or data.gov.uk then mock up a visualiser for that. \emph{(any remaining time)}
+
+\emph{Report write-up. (Ongoing)}
+
+\end{document}

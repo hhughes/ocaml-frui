@@ -1,0 +1,13 @@
+digraph if {
+X [label="x"]
+Y [label="y"]
+Z [label="z"]
+
+E1 [label="x+y"]
+E2 [label="if z = 0 then 0 else ((x+y) / z)"]
+
+X->E1
+Y->E1
+Z->E2
+E1->E2
+}

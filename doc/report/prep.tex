@@ -1,0 +1,98 @@
+\chapter{Preparation}
+
+\section{ocamljs}
+ocamljs is a modified version of the OCaml compiler. It uses the standard OCaml compiler up to the point when lambda code is generated from the abstract synatax tree. After this it transforms the lambda code into Javascript. Functions and exceptions map simply into Javascript. Integers and floats can be represented as a Javascript \emph{number} and boolean by the js \emph{bool} or a js \emph{number}. The standard library functions have been reimplemented in a static Javascript file.
+
+\subsection{Function Applications}
+Function applications are a bit more tricky. Functions in Javascript require the correct number of arguments but with OCaml functions can receive more (partial application) or less arguments (tail calls). When we have a partial application we want to return a closure and when we have a tail call we want to apply the extra arguments to the result. This is solved using Simon Peyton Jones' \emph{eval-apply} method.
+
+\subsection{Eval-Apply}
+With this scheme the caller is responsible for providing the correct number of arguments to a function. If there are not enough a closure has to be created and if there are too many the left over arguments are applied to the result of the function. This is implemented using the \emph{apply} function outlined in Figure \ref{eval-apply}.
+
+\begin{figure}
+  \begin{alltt}
+% fun = lambda... work out how to do this later %
+f a\subs{1} ... a\subs{n} -> apply\subs{n}(f, a\subs{1}, ..., a\subs{n})
+
+apply\subs{n} = fun f x\subs{1} ... x\subs{n}
+  match arity(f) with
+    | 1   -> apply\subs{n-1} (f(x\subs{1}), x\subs{2}, ..., x\subs{n})
+    | ...
+    | n-1 -> apply\subs{1} (f(x\subs{1}, ..., x\subs{n}), x\subs{n})
+    | n   -> f(x\subs{1}, ..., x\subs{n})
+    | n+1 -> papp\subs{n+1,n}(f, x\subs{1}, ..., x\subs{n})
+    | n+2 -> papp\subs{n+2,n}(f, x\subs{1}, ..., x\subs{n})
+    | ...
+
+papp\subs{p,q} = fun f x\subs{1} ... x\subs{q}. (fun x\subs{q+1} ... x\subs{p}. f(x\subs{1}, ..., x\subs{p}))
+  \end{alltt}
+  \caption{Eval-apply implementation}
+  \label{eval-apply}
+\end{figure}
+
+\subsection{ocamljs Example}
+For a small example consider a simple function which takes two argments and returns the summation of them and then an application of this function. Figure \ref{example} shows the OCaml code and compiled Javascript for the example.
+
+\begin{figure}
+  \begin{tabular}{| p{3.5cm} | p{8cm} |}
+    \hline
+    \textbf{OCaml} & \textbf{Javascript}\\ \hline
+    \begin{alltt}
+let f a b = a+b
+let three = f 1 2;;
+    \end{alltt}
+    &
+    \begin{alltt}
+function () \{
+  var f\$58 =
+    _f(2, function (a\$59, b\$60) \{
+      return a\$59 + b\$60;
+    \});
+  var three\$61 = _(f\$58, [ 1, 2 ]);
+  return \$(f\$58, three\$61);
+\}
+    \end{alltt} \\ \hline
+  \end{tabular}
+  \caption{OCaml source and Javascript output example}
+  \label{example}
+\end{figure}
+
+\section{froc}
+
+\emph{froc} is and OCaml library for functional reactive programming in OCaml. It uses self adjusting computation to push updates to input variables through data paths in the program. Froc implements a syntax extension which is used to build dependency graphs in the program. Dependencies can be chained so that expressions use the result of other expressions. The self adjusting computation ensures that when an input changes, the least about of computation is done: expressions who's inputs don't change are not recomputed.
+
+\subsection{Syntax}
+Froc introduces a wrapper around values called a \emph{behavior}. One of the methods froc adds is called \emph{bind}. There is also an additional syntax expression, \emph{>>=} which is short for bind. The bind function links an input behavior to a callback function and returns another behavior (the output). The callback function is run with the new value of the input behavior each time it is updated. The value the callback returns is the new value for the output behavior. Figure \ref{add_code} shows an example of froc and Figure \ref{add_graph} shows the dependency graph that froc holds internally.
+
+\begin{figure}
+  \begin{alltt}
+let x = return 1
+let y = return 2
+let z = return 3
+
+let i0 =
+    x >>= fun x ->
+        y >>= fun y ->
+            return (x + y)
+let ans =
+    i0 >>= fun i0 ->
+        z >>= fun z ->
+            return (i0 + z)
+  \end{alltt}
+  \caption{Addition using froc}
+  \label{add_code}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5cm]{graphs/addition.png}
+  \caption{Example dependency graph}
+  \label{add_graph}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=10cm]{graphs/if.png}
+  \caption{Example if-statement dependency graph}
+  \label{if_graph}
+\end{figure}

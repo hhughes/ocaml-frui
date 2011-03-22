@@ -1,0 +1,47 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{hyperref}
+\begin{document}
+\setlength{\parindent}{0cm}
+\setlength{\parskip}{10pt plus2mm minus2mm}
+\part*{Project Proposal}
+\section{Summary}
+I propose to create a system which transcribes an audio conversation and outputs text sections tagged by speaker in the style of a script. Current systems take an audio file and return a transcript of continuous prose; I intend to combine this with speaker identification to indicate when the speaker changes. Initially I would create a transcription system that identifies when the speaker changes before extending the system to cluster these sections of text based on a known and then unknown number of speakers.
+
+This project has some use in the real world. It could be used as a time-saving device when transcribing the contents of a recorded interview or for automated minute taking during meetings. It could aid searching the internet for work by certain people or be used for creating coloured subtitles denoting speaker on television programmes and films.
+
+\section{Proposed Work}
+
+Speech-to-text transcription has been implemented many times. This project will focus on deciding when the speaker changes, using an existing speech recognizer to carry out the transcription. There are several stages of this project which would serve as milestones.
+\begin{itemize}
+\item Successfully transcribing an audio file into text
+\item Distinguish when the speaker changes
+\item Marking the speech blocks with information about the speaker (tone, pitch, frequencies etc.)
+\item Grouping blocks with similar speech properties (work out who says what)
+\end{itemize}
+
+\section{Resources}
+\begin{itemize}
+\item A Java IDE: Eclipse (\url{www.eclipse.org})
+\item Open source speech recognizer: Sphinx4 (\url{http://cmusphinx.sourceforge.net/sphinx4})
+\item Google Code mercurial repository for version control and backup (\url{http://code.google.com})
+\item Sample conversations, use news interviews or record some myself
+\end{itemize}
+
+\section{Structure of the Project}
+The application should be simple. A console-based solution will be used which takes the audio file as an input and produces a text file as output. The program should provide the user with some feedback showing progress of the transcription process. The output file should consist of a series of speech sections, each starting with the speaker (“Speaker n”) and followed by the text.
+
+The project stages will be based loosely around the four milestones mentioned above. The very minimum system implemented would find the position in an audio file where the speaker first changes. This is probably the most challenging part of the project and once achieved, the rest of the project should follow on in a straight forward manner.
+
+To measure effectiveness of the project I will run tests on several recordings of the same audio conversations. This will test the robustness of the speaker identification algorithm. The accuracy of the transcribed text is not of much concern; as this is not the project's main objective I do not intend to modify or improve this function.
+
+As it stands, the software allocates a number to speakers as opposed to their real identity. It could be extended further by collecting and storing speech data from speakers and linking this to their name. This gives two advantages. The more data we have about a speaker the more accurately they can be identified. The second advantage is that an internet search could bring up the content of recorded conversations the speaker participated in.
+
+\section{Success Criteria}
+The following should be achieved:
+\begin{itemize}
+\item Create a console application which will transcribe an audio conversation
+\item Group sentences with a known number of speakers
+\end{itemize}
+I intend to compare my algorithms for identifying speakers to na\"{i}ve versions which I will implement. For the project to be a success, the advanced solution must be more accurate at defining the boundaries between different speakers.
+
+\end{document}

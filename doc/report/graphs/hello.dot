@@ -1,0 +1,8 @@
+graph hello {
+
+// Comment: Hello World from ``dot``
+// a graph with a single node Node1
+
+Node1 [label="Hello, World!"]
+
+}
