@@ -96,3 +96,36 @@ let ans =
   \caption{Example if-statement dependency graph}
   \label{if_graph}
 \end{figure}
+
+\section{Version Control}
+
+Versioning is very important for a software project. It involves breaking the project into a number of changesets, each of which is given a description, and the idea is that the code is in a consistent state before and after each commit. This is often used in conjuction with pushing changesets to a remote server which is regularly backed up. As a consequence if files get corrupted, deleted or changed in such a way that work has been undone they can be reverted to a working copy.
+
+There are many versioning systems. Git is the one used for the ocamljs and froc projects. It has the functionality required above and there is a free to use service run by \emph{GitHub}\footnote{\url{http://www.github.com}} on the condition at your code is publically viewable and anyone can fork your repository. The repository for this project can be found at \url{https://github.com/hhughes/ocaml-frui}.
+
+\section{Compiling the Project}
+
+Use the \emph{GNU Make}\footnote{\url{http://www.gnu.org/software/make/}} system. Make is essentially a wrapper around a bash script. It provides a simple way for anyone to compile source code because it is widely used. It also uses a dependency to only compile those parts of the project which have changed, reducing the compile time of the project during development.
+
+\section{Dependencies}
+ocamljs \& froc:
+\begin{itemize}
+\item ocaml source
+\item findlib
+\item ulex
+\item camlp4-extra
+\end{itemize}
+cohttp-server:
+\begin{itemize}
+\item lwt
+\item react
+\item libev
+\item cohttp
+\end{itemize}
+ocaml-frui:
+\begin{itemize}
+\item ocamljs
+\item froc
+\item cohttp-server
+\item json-wheel
+\end{itemize}

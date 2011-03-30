@@ -108,7 +108,7 @@ let onload () =
   let spinner_div = Dom.document#getElementById "spinner" in
   Spinner.create spinner_div time inc;
   let play_div = Dom.document#getElementById "play" in
-  play_div#_set_onclick (fun _ -> ignore (Dom.window#setInterval run 200.); true)
+  play_div#_set_onclick (fun _ -> ignore (Dom.window#setInterval run 0.); true)
 
 ;;
 

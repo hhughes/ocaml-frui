@@ -16,7 +16,7 @@ object (self)
   | Started -> if p < 80 then Running else if p < 90 then self#enterexit else Msg
   | Running -> if p < 40 then Running else if p < 60 then self#enterexit else if p < 90 then Msg else self#stopexit
   | FunEnter -> if p < 50 then Running else if p < 70 then FunExit else Msg
-  | FunExit ->  if p < 40 then Running else if p > 50 then self#enterexit else if p < 80 then Msg else self#stopexit
+  | FunExit ->  if p < 40 then Running else if p < 50 then self#enterexit else if p < 80 then Msg else self#stopexit
   | Msg -> if p < 60 then Running else if p < 80 then self#enterexit else if p < 90 then Msg else self#stopexit
   | Finished -> Stop
   | Stop -> Stop

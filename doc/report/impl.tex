@@ -1,23 +1,110 @@
 \chapter{Implementation}
-
+A series of problems I will solve to determine what type of problem ocamljs and froc are most useful for.
 \section{Log Viewer}
+Problem: \emph{Reading log files is difficult and confusing when we have multiple threads. Design a system using ocamljs and froc which could replace the log module in a program to display the messages in a more helpful way.}
+
+One way to display this information is to show a timeline for each thread. Debug messages can be shown as points on each thread line and function enters and exits can also be added to show which function we are in at any point.
+
 \subsection{JSON}
+ocamljs creates web applications, therefore the log viewer will also be one of these. JSON (JavaScript Object Notation) shall be used to communicate with the log viewer interface. JSON is used because when a string of JSON is passed to the JavaScript \emph{eval} function it is converted to the correct JavaScript object.
+
+This is fairly straight forward in JavaScript but doing the same in OCaml is slightly more tricky. In JavaScript objects are collections of key-value pairs (usually implemented as a hashtable to provide a fast lookup) where the keys are strings and the values can be any object. New key-value pairs can be added at runtime by setting unused field values, if an unused key is referenced then the null object is returned. This is very \emph{unOCaml}-like behaviour. In OCaml the field would have to be explicity declared in the object definition. However, because we know the JSON schema for our objects we can make a class for it.
+
+There are two ways to convert the JSON string into a JavaScript object. The first is to parse the string manually and set the values of mutable fields on the object as we go along. The problem with this is that unmarshalling the JSON would have some tricky corner cases, such as string padding, what to do with (and how to detect) invalid JSON? A better solution is to use the JavaScript \emph{eval} to convert the JSON to an object. This issue with this is how do we access the fields on the object?
+
+With OCaml not being as popular as a language like C there are many libraries which would be useful for an OCaml program which has been implemented in C. Sometimes it isn't worth porting the C code to OCaml so an interoperability layer has been added to OCaml which provides a way to interface with C libraries. Communincation between OCaml and C is achieved using \emph{external} function declarations. These are a very similar to prototype functions found in C header files. External functions have the following syntax:
+
+\begin{center}
+\texttt{external caml\_name : type = "C\_name"}
+\end{center}
+
+There are special prefixes for the function name string which are handled by the ocamljs compiler to provide JavaScript field accessors and method calls. Figure \ref{external} shows a table listing these.
+
+\begin{figure}
+  \centering
+  \begin{tabular}{|l|l|}
+    \hline
+    \textbf{prefix} & \textbf{compiles to}\\ \hline
+    \texttt{\#} & method call\\ \hline
+    \texttt{.} & read property\\ \hline
+    \texttt{=} & assign property\\ \hline
+    \texttt{@} & call built-in function\\ \hline
+  \end{tabular}
+  \caption{ocamljs external function prefixes}
+  \label{external}
+\end{figure}
+
 \subsection{froc}
+\emph{froc} is used in the log viewer to make the div elements (which show messages, functions and threads) re-align themselves when the time range changes.
 
 \section{cohttp-server}
+To retrieve JSON data the log viewer interface needs to use the \emph{HTTP GET} command. This simply requests a page from the server. This page need not be a real file and we can modify the HTTP server to generate some JSON on the fly to give back.
+
+The HTTP server implementation I used is called cohttp-server. This is because it is written in OCaml and the source code is free to use.
+
 \subsection{State Machine}
+In order to generate some interesting and believable data to test the log viewer on I am going to use a state machine to determine the next state of each thread. Each thread must be one of the following states (visualised in Figure \ref{state})
+\begin{itemize}{}
+\item Started
+\item Running
+\item FunEnter
+\item FunExit
+\item Msg
+\item Finished
+\item Stop
+\end{itemize}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=10cm]{graphs/state.png}
+  \caption{State machine diagram for test data}
+  \label{state}
+\end{figure}
+
 \subsection{JSON generation}
+JSON is generated using the \emph{json-wheel} OCaml module
 
 \section{froc Extension: froc-lists}
 \subsection{Motivation}
+Lots of events
+
+If we have too many to store we can poll for more
+
+Need to store these events in a list object
+
+If we used \texttt{\textnormal{$\alpha$} list behavior} then we would have to rebuild all the objects from scratch when a new item was added to the list.
+
+When we have a list we want to be able to apply a lift or bind to all the current elements of the list and all future ones. To simplify lets assume we are only ever going to need to push one element to the list of pop one element off at a time. We will also need a method to give us the list in the form of an OCaml list. Finally we will want to add to both the end and the start of the list if we are polling for data.
+
 \subsection{Implementation}
+
+The underlying data structure is two lists, one is the first half of the list (\texttt{first}), the other is the second half(\texttt{last}). Items are arranged in these lists such that pushing to the list \texttt{first} will add items to the beginning of the list and pushing to \texttt{last} will add items to the end of the list.
+
+To return the object as an OCaml list the method \texttt{list} is implemented as follows:
+
+\texttt{method list = List.rev\_append (List.rev first) (List.rev last)}
+
+This runs in \texttt{$O(n)$}.
+
 \subsection{Extensions}
+Unlike froc behaviours we cannot bind a function to when the list itself changes.
 
 \section{Piechart}
-\subsection{Canvases}
+Problem: \emph{When we have data being processed in real time it would be nice to have a widget which showed some property of that data and which updated as new data comes in}
+
+Map strings (which could represent message types for example) to integers which get incremented each time an occurrence of this happens. Use froc to redraw the pie each time the counters change.
 
 \section{Word Cloud}
+Problem: \emph{Similar to the pie chart, display the most popular words}
+
+Use a canvas and counters for words which appear in the data. Use font size to represent relative popularities of words.
 
 \section{Dataset Grapher}
+Problem: \emph{We would like to compare some data which varies in multiple axes on a 2D graph.}
+
+For example the data used in \emph{The Joy of Stats}\footnote{\url{http://www.gapminder.org}}. Data varies over time which is why froc is suited for this application. Each data point is represented by a HTML div element which realigns itself when the \emph{current} data changes (as we run through time and pick different data points).
 
 \section{Heatmap}
+Problem: \emph{How do we display data about energy usage over time for a number of rooms in a building?}
+
+Use a similar solution to the dataset grapher. As we run through time, each room (represented again by an HTML div) will change colour depending on the energy usage at that point.

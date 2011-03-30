@@ -8,3 +8,10 @@ myocamlbuild.ml
 *.cmo
 *.cmi
 server/server
+*.pdf
+*.out
+*.log
+*.aux
+*.png
+*.#*
+*.dvi

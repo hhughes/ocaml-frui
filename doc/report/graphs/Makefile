@@ -1,4 +1,4 @@
-GRAPHS="hello" "addition" "if"
+GRAPHS="hello" "addition" "if" "state"
 
 all:
 	for x in $(GRAPHS); \
