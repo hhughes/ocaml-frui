@@ -4,10 +4,15 @@ Y [label="y"]
 Z [label="z"]
 
 E1 [label="x+y"]
-E2 [label="if z = 0 then 0 else ((x+y) / z)"]
+E2 [label="a:z=0"]
+E3 [label="b:((x+y) / z)"]
+R1 [label="if a then 0 else b"]
 
 X->E1
 Y->E1
 Z->E2
-E1->E2
+E1->E3
+Z->E3
+E2->R1
+E3->R1
 }
