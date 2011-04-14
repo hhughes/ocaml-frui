@@ -1,4 +1,5 @@
 var visualiser_elt = $("div#visualiser");
+var timeline_elt = $("div#timeline");
 var messages = {};
 var functions = {};
 var threads = {};
@@ -65,11 +66,13 @@ function set_t(t) {
     var layout = false;
     if(t_min == 0 || t < t_min) {
 	t_min = t;
+	$("div#min > input").val(t_min);
 	layout = true;
     }
 
     if(t > t_max) {
 	t_max = t;
+	$("div#max > input").val(t_max);
 	layout = true;
     }
 
@@ -127,6 +130,48 @@ function next_msg() {
 function start() {
     setInterval(next_msg, 500);
 }
+
+function create_spinner(id, f_up, f_down) {
+    var spinner = $(document.createElement("div")).attr("id", id);
+    var up = $(document.createElement("button")).addClass("up").text("^");
+    var down = $(document.createElement("button")).addClass("down").text("v");
+    var input = $(document.createElement("input")).addClass("spinner");
+
+    up.click(f_up);
+    down.click(f_down);
+
+    spinner.append(up);
+    spinner.append(down);
+    spinner.append(input);
+    timeline_elt.append(spinner);
+}
+
+function min_up() {
+    t_min++;
+    $("div#min > input").val(t_min);
+    layout_all();
+}
+
+function min_down() {
+    t_min--;
+    $("div#min > input").val(t_min);
+    layout_all();
+}
+
+function max_up() {
+    t_max++;
+    $("div#max > input").val(t_max);
+    layout_all();
+}
+
+function max_down() {
+    t_max--;
+    $("div#max > input").val(t_max);
+    layout_all();
+}
+
+create_spinner("min", min_up, min_down);
+create_spinner("max", max_up, max_down);
 
 $("button#next_msg").click(next_msg);
 $("button#start").click(start);
