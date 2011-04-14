@@ -1,8 +1,16 @@
 var visualiser_elt = $("div#visualiser");
 var timeline_elt = $("div#timeline");
+var pie_elt = $("div#pie");
+var cloud_elt = $("div#cloud");
 var messages = {};
 var functions = {};
 var threads = {};
+
+var pie_pieces = {};
+var total_msgs = 0;
+
+var cloud_words = {};
+var total_words = 0;
 
 var t_min = 0;
 var t_max = 0;
@@ -81,12 +89,103 @@ function set_t(t) {
     }
 }
 
+function draw_slice(ctx, r, s) {
+    ctx.beginPath();
+    ctx.arc(60, 60, 50, r, r+s, false);
+    ctx.lineTo(60,60);
+    ctx.closePath();
+    ctx.stroke();
+    return r+s;
+}
+
+function draw_pie() {
+    var canvas = pie_elt.find("canvas");
+    var ctx = canvas[0].getContext("2d");
+
+    ctx.clearRect(0, 0, 200, 200);
+
+    ctx.strokeStyle = "black";
+    ctx.beginPath();
+    ctx.arc(60, 60, 55, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.stroke();
+    
+    ctx.strokeStyle = "red";
+    var r = 0;
+    for(p in pie_pieces) {
+	var count = pie_pieces[p];
+	if(count != null && (typeof count) != "function") {
+	    r = draw_slice(ctx, r, (count * 2 * Math.PI) / total_msgs);
+	}
+    }
+}
+
+function add_to_pie(ty) {
+    if(!pie_pieces[ty]) {
+	pie_pieces[ty] = 0;
+    }
+
+    pie_pieces[ty]++;
+    draw_pie();
+}
+
+function draw_cloud() {
+    var canvas = cloud_elt.find("canvas");
+    var ctx = canvas[0].getContext("2d");
+
+    ctx.clearRect(0, 0, 200, 200);
+
+    ctx.strokeStyle = "red";
+    var r = 50;
+    for(c in cloud_words) {
+	var count = cloud_words[c];
+	if(count != null && (typeof count) != "function") {
+	    var height = Math.floor((count * 100) / total_words);
+	    ctx.font = height + "px serif";
+	    ctx.strokeText(c, 0, r);
+	    r+=height;
+	}
+    }
+
+}
+
+function _add_to_cloud(w) {
+    total_words++;
+    if(!cloud_words[w]) {
+	cloud_words[w] = 0;
+    }
+
+    cloud_words[w]++;
+    draw_cloud();
+}
+
+function add_to_cloud(msg) {
+    w_name = msg.name.split(" ");
+    w_desc = msg.desc.split(" ");
+    for(w in w_name) {
+	var word = w_name[w];
+	if(word != null && (typeof word) != "function") {
+	    _add_to_cloud(word);
+	}
+    }
+
+    for(w in w_desc) {
+	var word = w_desc[w];
+	if(word != null && (typeof word) != "function") {
+	    _add_to_cloud(word);
+	}
+    }
+
+}
+
 function load_msg_obj(o) {
     var msgs = eval(o);
     for(m in msgs) {
 	var msg = msgs[m];
+	total_msgs++;
 	set_t(msg.ts);
-
+	add_to_pie(msg.ty);
+	add_to_cloud(msg);
 	switch(msg.ty) {
 	    case "t_start":
 		//create t
@@ -170,8 +269,20 @@ function max_down() {
     layout_all();
 }
 
+function create_pie_canvas() {
+    pie_elt.append($(document.createElement("canvas")));
+    draw_pie();
+}
+
+function create_cloud_canvas() {
+    cloud_elt.append($(document.createElement("canvas")));
+}
+
 create_spinner("min", min_up, min_down);
 create_spinner("max", max_up, max_down);
 
 $("button#next_msg").click(next_msg);
 $("button#start").click(start);
+
+create_pie_canvas();
+create_cloud_canvas();
