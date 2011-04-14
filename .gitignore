@@ -1,7 +1,8 @@
 _build
 *~
 \#*\#
-*.js
+src/*.js
+src/*/*.js
 myocamlbuild.ml
 ._*
 *.annot

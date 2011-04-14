@@ -131,21 +131,24 @@ let ans =
   \label{if_graph}
 \end{figure}
 
-\section{Version Control}
+\section{Design Model}
+This project will use the evolutionary model of development because it is difficult to get the solution correct the first time. It is better to implement the core functionality first to check that the OCaml to JavaScript compilation is working correctly and then add features one at a time.
 
+\section{Version Control}
 Version control is very important for a software project. It involves breaking the project into a number of changesets, each of which is given a description, and the idea is that the code is in a consistent state before and after each commit. This is often used in conjunction with pushing changesets to a remote server which is regularly backed up. As a consequence if files get corrupted, deleted or changed in such a way that work has been undone they can be reverted to a working copy.
 
 There are many version control systems. Git is the one used for the ocamljs and froc projects. It has the functionality required above and there is a free to use service run by \emph{GitHub}\footnote{\url{http://www.github.com}} on the condition at your code is publicly viewable and anyone can fork your repository. The repository for this project can be found at \url{https://github.com/hhughes/ocaml-frui}.
 
 \section{Compiling the Project}
-
 Use the \emph{GNU Make}\footnote{\url{http://www.gnu.org/software/make/}} system. Make is essentially a wrapper around a bash script. It provides a simple way for anyone to compile source code because it is widely used. It also uses dependencies to only compile those parts of the project which have changed, reducing the compile time of the project during development.
 
 \section{HTTP Server}
-
 An HTTP server is required to serve up a web page. At first a stock web server, such as \emph{Apache}, seemed like a good idea because it requires minimal setup. This is good for serving static content (such as HTML pages and JavaScript files) but dynamic content (such as time-dependent JSON messages) proves more tricky. In order to deliver interesting JSON data some server code is required. The two options are to use some sort of server side scripting which Apache can execute, although this requires learning a new language such as \emph{PHP} or to find an implementation of an HTTP server in a language this project is already using (such as OCaml) and modify it such that JSON data can be generated at run-time and delivered to the client.
 
 Using an OCaml HTTP server is the more sensible solution because it gives the greatest amount of time and lets me concentrate on writing the JSON generating code rather than getting stuck learning a new syntax. The OCaml web server I shall use is \emph{ocaml-cohttpserver}\footnote{\url{https://github.com/avsm/ocaml-cohttpserver}}.
+
+\section{json-wheel}
+json-wheel is a JSON library for OCaml. It follows RFC4627\footnote{\url{http://www.ietf.org/rfc/rfc4627.txt}} which describes the notation used by JSON. It provides a way to build JSON expressions from OCaml objects and visa-versa.
 
 \section{Dependencies}
 ocamljs \& froc:

@@ -56,6 +56,20 @@ let rec js\_array\_to\_list xs =
 \subsection{froc}
 \emph{froc} is used in the log viewer to make the div elements (which show messages, functions and threads) re-align themselves when the time range changes.
 
+In the first implementation the time range of the visualiser only changes when new messages arrive. The start time is set to the earliest known message and the end time is when the latest message was generated. The ends of the time range represented by two \emph{froc} variables. When a new message arrives, if it is newer than the newest message or older than the oldest then update these variables. A message is then turned into a div element. A function which lays the div in the correct place on the page is bound to the two \emph{froc} variables which represent the time range. Now whenever the variables are updated each of the divs bound to these have their callbacks run and the divs are realigned.
+
+\subsection{Controlling the Time Range}
+One of the requirements was to provide a way to zoom into particular ranges. The simplest way to provide this functionality is to use two input boxes, one which represents the time value for the leftmost message (minimum) and the other for the rightmost value (maximum). When the values in the input boxes change the two variables which represent the time range are updated. Alternatively if a new message arrives and one of the time range variables update then the input boxes will now not correspond to the correct value of the maximum of the time range. Therefore this has to update the values in the input boxes too. Figure \ref{spinners} shows the dependency graph for these controls.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.5]{graphs/spinners.png}
+  \caption{Dependency Graph for Spinners}
+  \label{spinners}
+\end{figure}
+
+There is a cycle in the dependency graph. This usually would mean that once an update gets into the cycle it would never terminate. However, because froc only sends an update when the value actually changes the cycle gets broken. This means no defensive programming is required to prevent cycles in the dependency graph, this is all managed by \emph{froc}.
+
 \section{cohttp-server}
 To retrieve JSON data the log viewer interface needs to use the \emph{HTTP GET} command. This simply requests a page from the server. This page need not be a real file and we can modify the HTTP server to generate some JSON on the fly to give back.
 
@@ -112,6 +126,12 @@ Unlike froc behaviours we cannot bind a function to when the list itself changes
 Problem: \emph{When we have data being processed in real time it would be nice to have a widget which showed some property of that data and which updated as new data comes in}
 
 Map strings (which could represent message types for example) to integers which get incremented each time an occurrence of this happens. Use froc to redraw the pie each time the counters change.
+
+\subsection{HTML Canvas Element}
+The Canvas element is a new element type added to HTML5. It provides a bitmap image and functions to draw 2D shapes and lines. It is much more flexible than drawing using HTML divs however removing objects from the scene requires erasing and redrawing whole sections.
+
+\subsection{Rendering the Pie}
+The pie chart shows the proportions of each type of message so will have to update each time a new message arrives.
 
 \section{Word Cloud}
 Problem: \emph{Similar to the pie chart, display the most popular words}

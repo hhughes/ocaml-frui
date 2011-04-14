@@ -1,0 +1,17 @@
+digraph spinners {
+S0 [label="min"]
+S1 [label="max"]
+
+T0 [label="t0"]
+T1 [label="t1"]
+
+D [label="divs"]
+
+S0->T0
+S1->T1
+T0->S0
+T1->S1
+
+T0->D
+T1->D
+}

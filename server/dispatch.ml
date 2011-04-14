@@ -24,7 +24,7 @@ open Events
 module Resp = struct
   (* respond with an error *)
   (* HACK *)
-  let root = "/home/henry/proj/ocaml-frui/src"
+  let root = "/home/henry/proj/ocaml-frui"
   let not_found req err = 
     let status = `Not_found in
     let headers = [ "Cache-control", "no-cache" ] in
