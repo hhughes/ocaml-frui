@@ -17,9 +17,10 @@ struct
   external value : item -> string = ".value"
 end
 
-external new_Object : string -> datum js_array = "@eval"
+external new_Object : string -> datum js_array js_array = "@eval"
 
 let unmarshall_json json = new_Object json
+
 let rec js_to_list msgs =
   if msgs#_get_length > 0 then
     msgs#pop :: (js_to_list msgs)

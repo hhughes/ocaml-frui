@@ -131,17 +131,29 @@ Map strings (which could represent message types for example) to integers which 
 The Canvas element is a new element type added to HTML5. It provides a bitmap image and functions to draw 2D shapes and lines. It is much more flexible than drawing using HTML divs however removing objects from the scene requires erasing and redrawing whole sections.
 
 \subsection{Rendering the Pie}
-The pie chart shows the proportions of each type of message so will have to update each time a new message arrives.
+The pie chart shows the proportions of each type of message so will have to update each time a new message arrives. The canvas element provides an arc drawing function. The start of the arc will be wherever the last one finished (or 0 if it is the first piece) and the end of the arc will the proportion of total items that piece represents around the circle ($2\pi$ radians). Unfortunately when any part of the pie chart has to update the whole canvas has to be erased and the pie redrawn from scratch so the self adjusting properties of froc cannot be exploited.
 
-\section{Word Cloud}
+\subsection{Word Cloud}
 Problem: \emph{Similar to the pie chart, display the most popular words}
 
-Use a canvas and counters for words which appear in the data. Use font size to represent relative popularities of words.
+The word cloud is very similar to the pie chart. Instead of counting object in predefined categories (such as message type) it count occurrences of words. There is not limit to the number of objects we are counting. The data structure to use in this case is a hash table. Use the word that is being counted as the key and the number of past occurrences as the value. When a new word appears the lookup in the hash table fails and a new entry can be added. This algorithm runs in \texttt{$O(1)$} however the space requirements are \texttt{$O(n)$} and the hash table object will require \texttt{$O(n)$} time each time it grows.
+
+To represent the data the words are drawn on a canvas with the font size (in pixels) set to the relative proportion that word is used.
 
 \section{Dataset Graph}
-Problem: \emph{We would like to compare some data which varies in multiple axes on a 2D graph.}
+Problem: \emph{We would like to compare some data which varies in multiple dimensions on a 2D graph.}
 
 For example the data used in \emph{The Joy of Stats}\footnote{\url{http://www.gapminder.org}}. Data varies over time which is why froc is suited for this application. Each data point is represented by a HTML div element which realigns itself when the \emph{current} data changes (as we run through time and pick different data points).
+
+\subsection{Data Sources}
+There are lots of data set available on the internet for example Twitter provide numerous data sets providing information about recent Tweets, posting users etc. There are several problems with this. The number of items returned each time is limited, the number of requests in a given time period are limited and each record is very large so contain a lot of unneeded data. Live data is quite often not very useful. With the Twitter data some of the time fields are missing etc.
+
+Historical data is much better because it can use usefully formatted and collated. The World Bank provides an API for a data set covering economics and development statistics for each country. It provides a RESTful interface and the data can be presented in JSON format. This data can be used to recreate a graph similar to that used in The Joy of Stats, which shows GDP against life expectancy all over time. To prevent having to request the same data over and over again from the World Bank web site, a snapshot can be made by using the \emph{wget} Unix tool. A script can be written to get all the pages of data required.
+
+\subsection{Data Structures for the Axes}
+After parsing all the data there needs to be an effective way to inject the current data value for each axis into each data point. It seems sensible to use two froc variables for each data-point, one for each axis. As the time changes these variables get updated with the correct value from the dataset. The data structures for storing both the data and the froc variables need to be chosen carefully.
+
+When the time value changes the whole set of data for that year is needed. Therefore it makes sense to use a hash table to store the data which is index by year. The value at each index is a list of key-value pairs with the key being the country ID and the value being the data value for that country in that year. Next the correct froc variables need to be found and updated with the new values. As the program iterates through the list of values the ID for the country is known at each point. Therefore if the froc variables were also stored in a hash table but this time indexed by country ID the lookup time to update the values will be constant. Therefore the total time to change the year should be \texttt{$O(n)$} where \emph{n} is the number of countries. 
 
 \section{Heat Map}
 Problem: \emph{How do we display data about energy usage over time for a number of rooms in a building?}
