@@ -158,4 +158,7 @@ When the time value changes the whole set of data for that year is needed. There
 \section{Heat Map}
 Problem: \emph{How do we display data about energy usage over time for a number of rooms in a building?}
 
-Use a similar solution to the dataset graph. As we run through time, each room (represented again by an HTML div) will change colour depending on the energy usage at that point.
+A heat map can be used to show the relative amounts of energy usage in different rooms at a given time. The higher the value for that room the \emph{hotter} the colour of that part of the map. A heat map is a graph with the x and y axes have been changed to represent physical dimensions. The values for a and y will not change so it's implementation is simpler than for the dataset graph.
+
+\subsection{Rendering the Map}
+From using the canvas element to draw the pie chart and word cloud we saw that drawing using canvases provided lots of flexibility but updating only the parts which have changed is difficult. If div elements were used, however, then the browser handles redrawing them itself. The problem with using div elements is that they are rectangular and rooms are often not. This could be solved by using multiple div elements which when coloured the same will form the shape of the room. Because this is aesthetics this project will just use a square in the middle of the room to represent the colour for the whole room.

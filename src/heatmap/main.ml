@@ -26,9 +26,9 @@ let inc = 3600000.
 let ids = ref []
 
 let pos = function
-  | "GN17" -> ("775", "135")
-  | "FN30" -> ("600", "135")
-  | "SN30" -> ("730", "135")
+  | "GN17" -> ("470", "90")
+  | "FN30" -> ("1120", "70")
+  | "SN30" -> ("1730", "70")
   | _ -> ("0", "0")
 
 let load_datum ht max d =
@@ -71,7 +71,7 @@ let create_div id =
 let run () = time#set (time#get +. inc)
 
 (* HACK *)
-let to_load = ref 0
+let to_load = ref 2
 let loaded () =
   Logger.debug "load";
   time#set !min_date;
@@ -89,6 +89,7 @@ let load_objects ht_d ht_v max o s =
 	Logger.debug "data loaded";
 	List.iter (load_var ht_v) (Hashtbl.find ht_d !max_date);
 	Logger.debug "vars loaded";
+	ids := [];
 	List.iter (fun (id,_) -> Logger.debug id; ids := id :: !ids) (Hashtbl.find ht_d !max_date);
 	Logger.debug "ids loaded";
 	loaded ()
