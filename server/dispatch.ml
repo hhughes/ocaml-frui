@@ -58,6 +58,7 @@ module Resp = struct
   let pop file = get_file (sprintf "/home/henry/proj/datasources/worldbank/pop/%s" file)
   let gdp file = get_file (sprintf "/home/henry/proj/datasources/worldbank/gdp/%s" file)
   let life file = get_file (sprintf "/home/henry/proj/datasources/worldbank/life/%s" file)
+  let tests file = get_file (sprintf "/home/henry/proj/ocaml-frui/tests/%s" file)
   let elec = get_file "/home/henry/proj/datasources/elec/primary-cs1-riser/G-lighting/S-m22-2011-01.json"
   let elec2 = get_file "/home/henry/proj/datasources/elec/primary-cs1-riser/F-lighting/S-m23-2011-01.json"
   let elec3 = get_file "/home/henry/proj/datasources/elec/primary-cs1-riser/S-lighting/S-m25-2011-01.json"
@@ -80,6 +81,7 @@ module Resp = struct
     | "" :: "pop" :: file :: [], _ -> pop file req
     | "" :: "gdp" :: file :: [], _ -> gdp file req
     | "" :: "life" :: file :: [], _ -> life file req
+    | "" :: "tests" :: file :: [], _ -> tests file req
     | "" :: "elec" :: [], _ -> elec req      
     | "" :: "elec2" :: [], _ -> elec2 req      
     | "" :: "elec3" :: [], _ -> elec3 req      

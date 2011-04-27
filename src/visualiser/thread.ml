@@ -44,7 +44,7 @@ object (self)
 	    | _ -> ()
 	end
     with
-      | Not_found _ -> debug "new function"; self#add_fn msg
+      | Not_found _ -> (*debug "new function";*) self#add_fn msg
   method parse_msg msg = 
     match Msg.ty msg with
       | "t_start" -> start#set (Msg.timestamp msg)

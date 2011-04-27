@@ -62,7 +62,7 @@ object (self)
   thread_elt
 
   method add_to_thread msg =
-  debug (sprintf "event of type %s" (Msg.ty msg));
+  (*debug (sprintf "event of type %s" (Msg.ty msg));*)
   let tid = Msg.threadId msg in
   (if not (Hashtbl.mem threads tid) then 
     begin

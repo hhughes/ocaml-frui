@@ -44,11 +44,11 @@ let load_msg_count m = msg_count#inc
 let load_timeline m = () (* TODO *)
 
 let load_m m =
-  load_pie m;
-  load_cloud m;
-  load_visualiser m;
-  load_msg_count m;
-  load_timeline m
+(*load_pie m *)
+    load_cloud m 
+(*  load_visualiser m*)
+(*  load_msg_count m;
+  load_timeline m*)
 
 let load_objects o s =
   match s with
@@ -58,26 +58,26 @@ let load_objects o s =
 	let msgs = js_to_list msgs in
 	List.iter load_m msgs
       end
-    | _ -> debug s
+    | _ -> () (*debug s*)
 
 let load_json _ =
   let json_url = 
     let url_input = (Dom.document#getElementById "json_url" : Dom.input) in
     url_input#_get_value
   in
-  debug json_url;
+  (*debug json_url;*)
   ignore (jQuery_util#get json_url () load_objects);
   true
 
-let load p = 
+let load p f = 
   let json_url = sprintf "http://localhost:8080/%s" p in
-  debug json_url; 
-  ignore (jQuery_util#get json_url () load_objects);
+  (*debug json_url; *)
+  ignore (jQuery_util#get json_url () (fun o s -> load_objects o s; f ()));
   true
 
-let load_next _ = load "next_msg"
+let load_next _ = load "next_msg" (fun () -> ())
 
-let load_msg _ = load "msg"
+let load_msg _ = load "msg" (fun () -> ())
 
 let run_id = ref None
 let run_count = ref 0
@@ -92,6 +92,18 @@ let run () =
 let load_start _ = 
   run_count := 200;
   run_id := Some (Dom.window#setInterval run 500.);
+  true
+
+let load_test1a _ = load "tests/test1a.json"  (fun () -> ())
+let load_test1b _ = load "tests/test1b.json"  (fun () -> ())
+
+let load_test2 n _ = 
+  let rec f n () =
+    match n with
+      | 100 -> ()
+      | n -> ignore (load (Printf.sprintf "tests/test2-%d.json" n)  (f (n+1)))
+  in
+  f n ();
   true
 
 let setup_pie () =
@@ -110,6 +122,12 @@ let onload () =
   start_button#_set_onclick (load_start);
   let msg_button = Dom.document#getElementById "msg" in
   msg_button#_set_onclick (load_msg);
+  let test1a_button = Dom.document#getElementById "test1a" in
+  test1a_button#_set_onclick (load_test1a);
+  let test1b_button = Dom.document#getElementById "test1b" in
+  test1b_button#_set_onclick (load_test1b);
+  let test2_button = Dom.document#getElementById "test2" in
+  test2_button#_set_onclick (load_test2 0);
   setup_pie ()
 ;;
 

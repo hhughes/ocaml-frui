@@ -8,7 +8,7 @@ struct
   external indicator : datum -> item = ".indicator"
   external country : datum -> item = ".country"
   external value : datum -> string = ".value"
-  external date : datum -> int = ".date"
+  external date : datum -> string = ".date"
 end
 
 module Item =

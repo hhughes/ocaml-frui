@@ -1,21 +1,73 @@
 \chapter{Evaluation}
 
+\section{Testing}
+It is important to know how ocamljs performs compared to hand-written JavaScript. In order to test the performance of the ocamljs there need to be web applications coded in JavaScript which use the same algorithms. These can each be run against some test data and the amount of time to execute the code can be compared for the different solutions.
+
+\subsection{Test data}
+In order to make it a fair test, the same test data must be used each time. This means that for the log viewer, pie chart and word cloud a test set of data must be created. This can be done using a shell script to run the \emph{wget} program against the server. This data can then be saved in a file and served up whenever the test data is requested.
+
+\subsection{Test 1}
+The first test is for the log viewer, pie chart and word cloud. It tests how well the solutions cope with large numbers of messages retrieved all at once. To create the dataset one hundred requests are made to the server, these are then compiled into one JSON array and stored in a single file. This is then repeated for the next hundred messages. These files are 8.7KB and 12KB respectively so only take around 4ms to download from an HTTP server on the local machine, hopefully variance in latency from downloading these files will not affect the results as much as they would over say a busy wireless link.
+
+\subsection{Test 2}
+The second test involves making lots of requests to the server. It tests how quickly the code can make requests for one hundred messages and draw them to the screen. The test data for this was made in a similar way as for \emph{Test 1}. Again a local machine server is used to guarantee nothing else is making requests while the tests are being performed.
+
+\subsection{Testing method}
+In order to gather some data about the tests the time the JavaScript takes to execute needs to be measured. This can be done using the developer tools included in \emph{Google Chrome}. One of the tools provided shows how time is spend while the page is loaded. Which functions and remote calls take how long. This is what the tests will use as the output data. Each test will be run multiple times and averaged in order to reduce random fluctuations in the execute time for the JavaScript. These could occur, for example, in the event the thread which is running the JavaScript code is preempted by a higher priority system thread.
+
+The testing process was done manually. After the timer tool is started reload the page so that the DOM always starts consistent. Then run the test. \emph{Test 1} consists of clicking a button to load the first lot of data then a second after that data has loaded. This is repeated 5 times in total. The data collected is the time spent executing JavaScript and the time spent rendering objects on the page. \emph{Test 2} is one button click, the data is the time from requesting the first piece of JSON until after the last one has been rendered.
+
+\subsection{Data}
+
+Figure \ref{test_data} shows the data collected.
+
+\begin{figure}
+  \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+    \hline
+    \textbf{Test} & \multicolumn{8}{|c|}{\textbf{Log Viewer}} \\
+    \cline{2-9}
+    & \multicolumn{2}{|c|}{\textbf{All}} & \multicolumn{2}{|c|}{\textbf{Visualiser}} & \multicolumn{2}{|c|}{\textbf{Pie Chart}} & \multicolumn{2}{|c|}{\textbf{Word Cloud}} \\
+    \cline{2-9}
+    & \textbf{js} & \textbf{ocamljs} & \textbf{js} & \textbf{ocamljs} & \textbf{js} & \textbf{ocamljs} & \textbf{js} & \textbf{ocamljs}\\
+    \hline
+    \emph{test\_1a\_script} & 711 & 892 & 600.2 & 271 & 66.2 & 50 & 74.4 & 202.2 \\
+    \hline
+    \emph{test\_1a\_render} & 482.6 & 398.6 & 430 & 378.2 & 0 & 0 & 13.8 & 0 \\
+    \hline
+    \emph{test\_1b\_script} & 2196 & 879.2 & 2012 & 56 & 67.8 & 74.4 & 93.8 & 267.8 \\
+    \hline
+    \emph{test\_1b\_render} & 1270.4 & 119.4 & 1482 & 98.8 & 0 & 0 & 13.4 & 0 \\
+    \hline
+    \emph{test\_2} & 7695.75 & 7804.5 & 6622.2 & 5577.6 & 3075.2 & 3003.8 & 2941 & 3408 \\
+    \hline
+  \end{tabular}
+  \caption{Test data}
+  \label{test_data}
+\end{figure}
+
+\subsection{Analysis}
+Rendering takes significantly longer in pure JavaScript compared to ocamljs compiled JavaScript.
+
 \section{ocamljs vs JavaScript}
 \emph{At what point does writing ocamljs become more effective than js?} Probably once there are multiple developers working on the same piece of web application code. JavaScript quickly becomes unmanageable but OCaml uses modules and classes which can all be independent of each other. This makes it a lot more useful for large scale projects. Also because of the strong type checking, programming errors can easily be identified. This is not so easy with large pieces of JavaScript code where they can become lost and take a long time to debug.
 
 However if the application is fairly small (~100 lines of JavaScript) it would almost certainly be quicker and easier to write it straight in JavaScript, ocamljs is very clunky and repetitive for doing things one off such as setting styles and adding text to elements.
 
-Sometimes the JavaScript interpretation of the code does not do what is expected. The OCaml compiles and the bytecode version would do the correct thing but the JavaScript doesn't work. This is often due to limitations in the compilation of OCaml into JavaScript. One example occurred when using the Hashtable module. At first the data structure for the graph control used a hash table indexed by year (an integer). The OCaml hash table has the following type:
+%probably irrelevant :(
 
-\begin{center}
-\texttt{type ($\alpha$, $\beta$) t}
-\end{center}
+%Sometimes the JavaScript interpretation of the code does not do what is expected. The OCaml compiles and the bytecode version would do the correct thing but the JavaScript doesn't work. This is often due to limitations in the compilation of OCaml into JavaScript. One example occurred when using the Hashtable module. At first the data structure for the graph control used a hash table indexed by year (an integer). The OCaml hash table has the following type:
 
-This means that both the key and the value can be of any type (and can be different types from each other). However when the OCaml is compiled into JavaScript it only works if the keys are strings. In JavaScript hash tables are implemented as standard JavaScript objects. These objects can have arbitrary fields so behave exactly like hash tables indexed by strings. This does work with integers because the browser interprets them as their string value. However, the ocamljs compiler
+%\begin{center}
+%\texttt{type ($\alpha$, $\beta$) t}
+%\end{center}
+
+%This means that both the key and the value can be of any type (and can be different types from each other). However when the OCaml is compiled into JavaScript it only works if the keys are strings. In JavaScript hash tables are implemented as standard JavaScript objects. These objects can have arbitrary fields so behave exactly like hash tables indexed by strings. This does work with integers because the browser interprets them as their string value. However, the ocamljs compiler
+
+%takes ten times as long to code with probably less debugging but not really worth it!
 
 \section{Where froc was useful}
 \subsection{Log viewer}
-Sort of...
+froc was used to update the display whenever a new message arrived or when the time was updated. All of the elements depended on the time range displayed so just as much work would have been done if there was a \emph{refresh} method which had iterated through the list of elements, passing them into the function which set their location. Both of these methods run in $O(n)$ so there should not be any computational advantage to using froc in this case, indeed there maybe even an extra overhead.
 \subsection{Pie chart}
 No. We had to do just as much work anyway.
 \subsection{Word Cloud}

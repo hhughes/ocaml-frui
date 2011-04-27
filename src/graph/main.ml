@@ -20,11 +20,11 @@ let time = new fvar 2000.
 let ids = ref []
 
 let load_datum ht max d =
-  let year = Datum.date d in
+  let year = int_of_string (Datum.date d) in
   let country = Item.id (Datum.country d) in
   let value = try float_of_string (Datum.value d) with _ -> nan in
-  if not (Hashtbl.mem ht (string_of_int year)) then Hashtbl.add ht (string_of_int year) [];
-  let tl = Hashtbl.find ht (string_of_int year) in
+  if not (Hashtbl.mem ht year) then Hashtbl.add ht year [];
+  let tl = Hashtbl.find ht year in
   if(year < !min_year) then min_year := year;
   if(year > !max_year) then max_year := year;
   begin
@@ -32,7 +32,7 @@ let load_datum ht max d =
     | FP_normal -> if(value > !max) then max := value else ()
     | _ -> ()
   end;
-  Hashtbl.replace ht (string_of_int year) ((country,value)::tl)
+  Hashtbl.replace ht year ((country,value)::tl)
 
 let load_var ht (id, value) = Hashtbl.replace ht id (new fvar value)
 
@@ -61,9 +61,9 @@ let update_axis ht_d ht_v y =
     let var = Hashtbl.find ht_v id in
     var#set v
   in
-  List.iter update (Hashtbl.find ht_d (string_of_int (int_of_float y)))
+  List.iter update (Hashtbl.find ht_d (int_of_float y))
 (* HACK *)
-let to_load = ref 489
+let to_load = ref 99
 let loaded () =
   if !to_load > 0 then to_load := !to_load - 1
   else List.iter create_div !ids
@@ -75,9 +75,9 @@ let load_objects ht_d ht_v max o s =
 	let data = js_to_list (unmarshall_json o) in (* expensive!? *)
 	let data = js_to_list (List.hd data) in
 	List.iter (load_datum ht_d max) data;
-	List.iter (load_var ht_v) (Hashtbl.find ht_d "2009");
+	List.iter (load_var ht_v) (Hashtbl.find ht_d 2009);
 	ids := [];
-	List.iter (fun (id,_) -> ids := id :: !ids) (Hashtbl.find ht_d "2009");
+	List.iter (fun (id,_) -> ids := id :: !ids) (Hashtbl.find ht_d 2009);
 	ignore(Froc.lift (update_axis ht_d ht_v) time#b);
 	loaded ()
       end
@@ -92,8 +92,8 @@ let rec get_n u d v m = function
     get_n u d v m (n-1)
 
 let load_json _ =
-  get_n "http://localhost:8080/gdp/gdp-%d.json" gdp_data gdp_vars gdp_max 245;
-  get_n "http://localhost:8080/life/life-%d.json" life_data life_vars life_max 245;
+  get_n "http://localhost:8080/gdp/gdp-%d.json" gdp_data gdp_vars gdp_max 50;
+  get_n "http://localhost:8080/life/life-%d.json" life_data life_vars life_max 50;
   true
 
 let onload () =

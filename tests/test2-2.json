@@ -1,0 +1,16 @@
+[  {
+    'tid': 1,
+    'ty': 't_start',
+    'ts': 1303394611.83,
+    'name': 't',
+    'desc': 't',
+    'misc': {}
+  },
+  {
+    'tid': 0,
+    'ty': 'fn_finish',
+    'ts': 1303394611.83,
+    'name': 'f0',
+    'desc': 'f',
+    'misc': {}
+  }]

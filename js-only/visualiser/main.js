@@ -184,9 +184,9 @@ function load_msg_obj(o) {
 	var msg = msgs[m];
 	total_msgs++;
 	set_t(msg.ts);
-	add_to_pie(msg.ty);
+	//add_to_pie(msg.ty);
 	add_to_cloud(msg);
-	switch(msg.ty) {
+	/*switch(msg.ty) {
 	    case "t_start":
 		//create t
 		msg.ty = "thread";
@@ -218,7 +218,7 @@ function load_msg_obj(o) {
 	        functions[msg.ts] = msg
 		layout_div(msg);
 		break;
-	}
+		}*/
     }
 }
 
@@ -278,11 +278,35 @@ function create_cloud_canvas() {
     cloud_elt.append($(document.createElement("canvas")));
 }
 
+function test1a() {
+    $.get("http://localhost:8080/tests/test1a.json", load_msg_obj)
+}
+
+function test1b() {
+    $.get("http://localhost:8080/tests/test1b.json", load_msg_obj)
+}
+
+function _test2(n) {
+    function f(o) {
+	load_msg_obj(o);
+	_test2 (n+1);
+    }
+    if (n >= 100) { return }
+    else $.get("http://localhost:8080/tests/test2-" + n + ".json", f)
+}
+
+function test2() {
+    _test2(0);
+}
+
 create_spinner("min", min_up, min_down);
 create_spinner("max", max_up, max_down);
 
 $("button#next_msg").click(next_msg);
 $("button#start").click(start);
+$("button#test1a").click(test1a);
+$("button#test1b").click(test1b);
+$("button#test2").click(test2);
 
 create_pie_canvas();
 create_cloud_canvas();
