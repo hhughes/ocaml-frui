@@ -45,6 +45,24 @@ Figure \ref{test_data} shows the data collected.
   \label{test_data}
 \end{figure}
 
+\begin{figure}
+  \begin{tabular}{|c|c|c|}
+    \hline
+    \textbf{Test} & \multicolumn{2}{|c|}{\textbf{Data Graph}} \\
+    \cline{2-3}
+    & \textbf{js} & \textbf{ocamljs} \\
+    \hline
+    \emph{test3a\_load} & 961.8 & 1499.6 \\
+    \hline
+    \emph{test3b\_script} & 10.2 & 359.6 \\
+    \hline
+    \emph{test3b\_render} & 11.8 & 18 \\
+    \hline
+  \end{tabular}
+  \caption{Test data 2}
+  \label{test_data2}
+\end{figure}
+
 \subsection{Analysis}
 Rendering takes significantly longer in pure JavaScript compared to ocamljs compiled JavaScript.
 
@@ -68,11 +86,13 @@ However if the application is fairly small (~100 lines of JavaScript) it would a
 \section{Where froc was useful}
 \subsection{Log viewer}
 froc was used to update the display whenever a new message arrived or when the time was updated. All of the elements depended on the time range displayed so just as much work would have been done if there was a \emph{refresh} method which had iterated through the list of elements, passing them into the function which set their location. Both of these methods run in $O(n)$ so there should not be any computational advantage to using froc in this case, indeed there maybe even an extra overhead.
+
+However, looking at the testing results for the log viewer, there is a significant difference in the running time that the complexity analysis does not suggest there should be. Running the scripts and rendering the divs takes significantly longer in the JavaScript solution. [however this could be due to a difference in algorithms...]
 \subsection{Pie chart}
-No. We had to do just as much work anyway.
+The data collected from testing this part of the project shows that using \emph{froc} and \emph{ocamljs} does not make much different to running times in this case.
 \subsection{Word Cloud}
-No. We had to do just as much work anyway.
+The combination of \emph{froc} and \emph{ocamljs} caused extra overhead, script execution time was significantly longer for the \emph{ocamljs} implementation.
 \subsection{Dataset Graph}
-Yes. It was very effective at moving the data points around when needed. It does the minimum work necessary.
+In this case it causes more overhead. According to the testing results it about 1.5 times the time to load the data and more than an order of magnitude to render it. The order of magnitude result is significant.
 \subsection{Heat map}
-Yes. It only changes the colours when needed. Again doing the minimum work.
+[not sure how to test this]

@@ -90,9 +90,9 @@ function load() {
     function all_done() {
 	loaded--;
 	if(!loaded) {
-	    set_time(max_year);
-	    for(i in gdp_data[max_year]) {
-		id = gdp_data[max_year][i].id;
+	    set_time(2009);
+	    for(i in gdp_data[2009]) {
+		id = gdp_data[2009][i].id;
 		ids.push(id);
 	    }
 	    create_elements();
