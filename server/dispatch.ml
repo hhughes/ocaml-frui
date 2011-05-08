@@ -14,7 +14,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *)
-
+ 
 open Printf
 open Cohttp
 open Cohttpserver
@@ -67,6 +67,11 @@ module Resp = struct
     let body = [`String (Thread_state.get_events ())] in
     return (dyn req body)
 
+  let reset req =
+    let body = [`String ""] in
+    Thread_state.reset ();
+    return (dyn req body)
+
   (* index page *)
   let index req =
     let body = [`String "HELLO WORLD"] in
@@ -86,6 +91,7 @@ module Resp = struct
     | "" :: "elec2" :: [], _ -> elec2 req      
     | "" :: "elec3" :: [], _ -> elec3 req      
     | "" :: "next_msg" :: [], _ -> next_msg req
+    | "" :: "reset" :: [], _ -> reset req
     | _, path -> try get_file (root ^ path) req
       with _ -> return (not_found req "dispatch")
 

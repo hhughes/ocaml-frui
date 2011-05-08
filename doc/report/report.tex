@@ -1,4 +1,4 @@
-\documentclass[10pt,a4paper]{report}
+\documentclass[10pt,a4paper]{book}
 \usepackage{hyperref}
 \usepackage{parskip}
 \usepackage{listings}
@@ -8,10 +8,16 @@
 \usepackage[pdftex]{graphicx}
 \usepackage{graphviz}
 \usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{geometry}
+\geometry{bindingoffset=1cm}
 
 \usepackage{float}
 \floatstyle{boxed} 
 \restylefloat{figure}
+
+\usepackage[toc]{glossaries}
 
 \begin{document}
 \input{helpers.tex}
@@ -34,34 +40,25 @@
   commentstyle=\color[rgb]{0.133,0.545,0.133},
   stringstyle=\color[rgb]{0.627,0.126,0.941},
 }
+\setcounter{tocdepth}{1}
+\input{glos.tex}
 
-  \begin{titlepage}
-    \vfil
-    \centerline{\Large Computer Science Tripos Project Report}
-    \vspace{0.4in}
-    \centerline{\Huge Functionally Reactive Web User Interfaces }
-    \vspace{0.4in}
-    \centerline{\large Henry Hughes, Jesus College}
-    \vspace{0.3in}
-    \vfill
-    \centerline{{\bf Originator:} Dr A. Madhavapeddy}
-    \vspace{0.1in}
-    \centerline{{\bf Project Supervisor:} Dr A. Madhavapeddy}
-    \vspace{0.1in}
-    \centerline{{\bf Director of Studies:} Prof J. Bacon}
-    \vspace{0.1in}
-    \centerline{{\bf Project Overseers:} Dr T. Griffin \& Dr M. Kuhn}
-    \vspace{0.3in}
-    \centerline{\large \today}
-    \vfil
-  \end{titlepage}
+  \frontmatter
+  \input{cover.tex}
+  \input{prof.tex}
+  \input{orig.tex}
+  \tableofcontents
 
+  \mainmatter
   \input{intro.tex}
   \input{prep.tex}
   \input{impl.tex}
   \input{eval.tex}
   \input{concl.tex} 
 
+%  \backmatter
+  \input{bibl.tex}
+  \printglossaries
   \appendix
   \input{app_code.tex}
 

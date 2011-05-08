@@ -44,8 +44,8 @@ let load_msg_count m = msg_count#inc
 let load_timeline m = () (* TODO *)
 
 let load_m m =
-(*load_pie m *)
-    load_cloud m 
+  load_pie m
+(*  load_cloud m;*)
 (*  load_visualiser m*)
 (*  load_msg_count m;
   load_timeline m*)
@@ -79,6 +79,11 @@ let load_next _ = load "next_msg" (fun () -> ())
 
 let load_msg _ = load "msg" (fun () -> ())
 
+(*let load_msg _ =
+  let msgs = Thread_state.get_events () in
+  load_objects msgs "success";
+  true*)
+
 let run_id = ref None
 let run_count = ref 0
 
@@ -96,6 +101,10 @@ let load_start _ =
 
 let load_test1a _ = load "tests/test1a.json"  (fun () -> ())
 let load_test1b _ = load "tests/test1b.json"  (fun () -> ())
+
+let load_test1000 _ = load "tests/test1000.json" (fun () -> ())
+
+let load_test10000 _ = load "tests/test10000.json" (fun () -> ())
 
 let load_test2 n _ = 
   let rec f n () =
@@ -128,6 +137,10 @@ let onload () =
   test1b_button#_set_onclick (load_test1b);
   let test2_button = Dom.document#getElementById "test2" in
   test2_button#_set_onclick (load_test2 0);
+  let test1000_button = Dom.document#getElementById "test1000" in
+  test1000_button#_set_onclick (load_test1000);
+  let test10000_button = Dom.document#getElementById "test10000" in
+  test10000_button#_set_onclick (load_test10000);
   setup_pie ()
 ;;
 

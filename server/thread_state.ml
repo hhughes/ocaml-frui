@@ -1,4 +1,5 @@
-let _ = Random.init (int_of_float (Unix.gettimeofday ()))
+let seed = 0
+let _ = Random.init seed
 let latest_tid = ref 0
 let next_tid () = let tid = !latest_tid in latest_tid := tid+1; tid
 
@@ -36,6 +37,10 @@ object (self)
 end
 
 let threads = ref []
+
+let reset () =
+  threads := [];
+  latest_tid := 0
 
 let get_events () =
   threads := List.filter (fun t -> t#state <> Stop) !threads;

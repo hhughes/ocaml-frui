@@ -4,7 +4,7 @@ N=$1
 
 if [ -z $N ]
 then
-    N=100
+    N=1000
 fi
 
 echo \[

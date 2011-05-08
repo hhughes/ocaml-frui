@@ -16,3 +16,6 @@ server/server
 *.png
 *.#*
 *.dvi
+*.ist
+*.glo
+*.toc

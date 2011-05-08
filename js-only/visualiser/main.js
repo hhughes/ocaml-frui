@@ -184,9 +184,9 @@ function load_msg_obj(o) {
 	var msg = msgs[m];
 	total_msgs++;
 	set_t(msg.ts);
-	//add_to_pie(msg.ty);
-	add_to_cloud(msg);
-	/*switch(msg.ty) {
+	add_to_pie(msg.ty);
+//	add_to_cloud(msg);
+/*	switch(msg.ty) {
 	    case "t_start":
 		//create t
 		msg.ty = "thread";
@@ -286,6 +286,14 @@ function test1b() {
     $.get("http://localhost:8080/tests/test1b.json", load_msg_obj)
 }
 
+function test1000() {
+    $.get("http://localhost:8080/tests/test1000.json", load_msg_obj)
+}
+
+function test10000() {
+    $.get("http://localhost:8080/tests/test10000.json", load_msg_obj)
+}
+
 function _test2(n) {
     function f(o) {
 	load_msg_obj(o);
@@ -307,6 +315,8 @@ $("button#start").click(start);
 $("button#test1a").click(test1a);
 $("button#test1b").click(test1b);
 $("button#test2").click(test2);
+$("button#test1000").click(test1000);
+$("button#test10000").click(test10000);
 
 create_pie_canvas();
 create_cloud_canvas();

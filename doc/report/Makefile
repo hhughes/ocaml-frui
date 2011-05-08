@@ -1,4 +1,5 @@
 all:
 	wc -w *.tex && echo
-	rm report.aux
-	pdflatex -shell-escape report.tex
+	rm -f report.aux
+	rm -f report.toc
+	rubber -d report

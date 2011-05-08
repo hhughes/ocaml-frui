@@ -1,45 +1,74 @@
 \chapter{Preparation}
 
-\section{OCaml}
-Objective Caml (\emph{OCaml}) is a variant of the Caml language. It is an extension of Caml which adds an object-oriented layer and module system. It is designed for use in developing commercial systems and is the most popular Caml derivative.\footnote{\url{http://caml.inria.fr/ocaml/index.en.html}}
+\section{Starting Point}
 
-Caml is a general purpose language which supports functional, imperative and object-oriented programming styles. It features a powerful type system which uses parametric polymorphism and type inference. This allows methods to be designed without having to explicitly declare the types of parameters or the result so functions can be reused on many different types of inputs. It also has pattern matching which can be used to direct control flow of the program through functions depending on their inputs.
+\subsection{JavaScript}
+JavaScript is used for client-side scripting on web pages. It is run on the local machine inside the browser environment and can access and modify the Document Object Model (\emph{DOM}), the browsers representation of the  objects on the current web page. By manipulating the DOM at run-time, JavaScript can be used to make interactive user interfaces and dynamic pages.
 
-\section{JavaScript}
-JavaScript is mainly used for client-side scripting on web pages. It is run on the local machine inside the browser environment and can access and modify the Document Object Model (\emph{DOM}) which is the browsers representation of the current web page. For this reason it can be used to make interacted web user interfaces and dynamic pages. In some ways JavaScript is very similar to OCaml. In both languages functions are first class objects, they can be assigned to variables, passed as function parameters and invoked. However the typing systems of OCaml and JavaScript are very different. OCaml types start off generic and get more specific each time they are used. In JavaScript variables themselves do not have a type and so can be reassigned to a value of any type. This can lead to programming errors because you are not guaranteed to know the type of your object at any point. Another difference is that OCaml is checked for errors at compile-time where as JavaScript is checked at run-time. If a piece of code is not executed in a test-run you cannot be sure that it will succeed.
+\subsection{OCaml}
+Caml (Categorical Abstract Machine Language) is a general purpose language which supports functional, imperative and object-oriented programming styles. It features a powerful type system which uses parametric polymorphism and type inference. This allows methods to be designed without having to explicitly declare the types of parameters or the result so functions can be reused on many different types of inputs. It also has pattern matching which can be used to direct control flow of the program through functions depending on their inputs.\cite{bib:caml}
 
-\section{Web Applications}
-JavaScript is the only client-side scripting language supported by the most popular web browsers so web applications have to use it. Developing in JavaScript, as with all scripting languages, is fairly rapid but as the code base grows keeping track of types of variables and what code gets executed when soon becomes unmanageable. It would be nice if JavaScript could provide the same guarantees for the web application as for programs compiled using OCaml.
+OCaml (Objective Caml) is a variant of the Caml language. It is an extension of Caml which adds an object-oriented layer and module system. It is designed for use in developing commercial systems and is the most popular Caml derivative.\cite{bib:ocaml}
 
-\section{ocamljs}
-ocamljs is a modified version of the OCaml compiler. It uses the standard OCaml compiler up to the point when lambda code is generated from the abstract syntax tree. Figure \ref{lambda} shows a simple OCaml program and it's corresponding lambda code. After this it transforms the lambda code into JavaScript. Functions and exceptions map simply into JavaScript. Integers and floats can be represented as a JavaScript \emph{number} and boolean by the JavaScript \emph{bool} or a JavaScript \emph{number}. The standard library functions have been reimplemented in a static JavaScript file.
+\subsection{JavaScript vs OCaml}
+In some ways JavaScript is very similar to OCaml. In both languages functions are first class objects, they can be assigned to variables, passed as function parameters and invoked. However the typing systems of OCaml and JavaScript are very different. OCaml types start off generic and get more specific each time they are used. In JavaScript variables themselves do not have a type and so can be reassigned to a value of any type. This can lead to programming errors because you are not guaranteed to know the type of your object at any point. Another difference is that OCaml is checked for errors at compile-time where as JavaScript is checked at run-time. If a piece of code is not executed in a test-run you cannot be sure that it will succeed.
+
+\section{Requirements Analysis}
+A successful implementation of this project should:
+\begin{itemize}
+\item Provide two or more significantly different web applications.
+\item These applications must be cross-browser compatible.
+\item Each must make use of ocamljs and froc.
+\item ...
+\end{itemize}
+
+\section{Tools}
+
+\subsection{ocamljs}
+ocamljs is a modified version of the OCaml compiler. It uses the standard OCaml compiler up to the point when lambda code is generated, it replaces the last stage where bytecode is generated and outputs JavaScript instead. Figure \ref{fig:ocamlc} shows the stages of the OCaml compiler and ocamljs. \cite{bib:oreilly}
 
 \begin{figure}
-  \begin{tabular}{| p{3.5cm} | p{7.8cm} |}
-    \hline
-    \textbf{OCaml (simple.ml)} & \textbf{Lambda}\\ \hline
-    \begin{alltt}
-let f a b = a+b
-let three = f 1 2;;
-    \end{alltt}
-    &
-    \begin{alltt}
-(setglobal Simple!
-  (let (
-    f/58 (function a/59 b/60 (+ a/59 b/60))
-    three/61 (apply f/58 1 2))
-    (makeblock 0 f/58 three/61)))
-    \end{alltt} \\ \hline
-  \end{tabular}
-  \caption{OCaml example code and it's lambda representation}
-  \label{lambda}
+  \center{\includegraphics[scale=0.5]{images/ocamlc.pdf}}
+  \caption{Stages of the OCaml compiler (ocamlc) and ocamljs.\cite{bib:oreilly}}
+  \label{fig:ocamlc}
 \end{figure}
 
-\subsection{Function Applications}
-Function applications are a bit more tricky. Functions in JavaScript require the correct number of arguments but with OCaml functions can receive more (partial application) or less arguments (tail calls). When we have a partial application we want to return a closure and when we have a tail call we want to apply the extra arguments to the result. This is solved using Simon Peyton Jones' \emph{eval-apply} method.
+\subsubsection{Lambda Code}
+Lambda code is based on the $\lambda-calculus$. This notation was invented by Alonso Church in the 1930s. It is used to describe the most basic ways operators and functions can be combined. Conversion from mathematical functions to lambda-expressions is fairly straight forward. Here is a short example:\cite{bib:lambda}
 
-\subsection{Eval-Apply}
-With this scheme the caller is responsible for providing the correct number of arguments to a function. If there are not enough a closure has to be created and if there are too many the left over arguments are applied to the result of the function. This is implemented using the \emph{apply} function outlined in Figure \ref{eval-apply}.
+$f(x) = x - 1$ becomes $\lambda.x x-1$
+
+This may not look like a big change but it provides a systematic notation which is good for incorporation into programming. When there are multiple parameters for a function, instead of having a multi-parameter lambda-expression multiple single parameter lambda-expressions are chained. For example:
+
+$\lambda.y \lambda.x x - y$.
+
+Lambda code is very similar to $\lambda-calculus$. Consider the following OCaml program:
+
+\begin{alltt}
+let f a b = a+b
+let three = f 1 2;;
+\end{alltt}
+
+The OCaml compiler can output the lambda representation if the \emph{-dlambda} command-line switch is used. This is the lambda output for the above OCaml:
+
+\begin{alltt}
+  (setglobal Simple!
+  (let (
+  f/58 (function a/59 b/60 (+ a/59 b/60))
+  three/61 (apply f/58 1 2))
+  (makeblock 0 f/58 three/61)))
+\end{alltt}
+
+In this lambda code variables have been renamed. The lambda-expression part is \emph{function a/59 b/60 (+ a/59 b/60)} which is equivalent to \texttt{$\lambda a.\lambda b.a+b$}.
+
+\subsubsection{Lambda to JavaScript}
+Functions and exceptions map simply into JavaScript. Integers and floats can be represented as a JavaScript \emph{number} and booleans by the JavaScript \emph{bool}. The standard library functions have been reimplemented in a static JavaScript file.\cite{bib:js_comp}
+
+\subsubsection{Function Applications}
+Function applications are a bit more tricky. Functions in JavaScript require the correct number of arguments but in OCaml, functions can receive more (\emph{tail calls}) or less arguments (\emph{partial application}). When we have a partial application we want to return a closure and when we have a tail call we want to apply the extra arguments to the result. This is solved using Simon Peyton Jones' \emph{eval-apply} method.\cite{bib:js_comp,bib:krivines_machine}
+
+\subsubsection{Eval-Apply}
+With this scheme the caller is responsible for providing the correct number of arguments to a function. If there are not enough a closure has to be created and if there are too many the left over arguments are applied to the result of the function. This is implemented using the \emph{apply} function outlined in Figure \ref{eval-apply}.\cite{bib:krivines_machine}
 
 \begin{figure}
   \begin{alltt}
@@ -61,8 +90,8 @@ papp\subs{p,q} = \lam f x\subs{1} ... x\subs{q}. (\lam x\subs{q+1} ... x\subs{p}
   \label{eval-apply}
 \end{figure}
 
-\subsection{ocamljs Example}
-For a small example consider a simple function which takes two arguments and returns the summation of them and then an application of this function. Figure \ref{example} shows the OCaml code and compiled JavaScript for the example.
+\subsubsection{ocamljs Example}
+Consider a simple function which takes two arguments and returns the summation of them and then an application of this function. Figure \ref{example} shows the OCaml code and compiled JavaScript for this example.
 
 \begin{figure}
   \begin{tabular}{| p{4cm} | p{7.3cm} |}
@@ -88,18 +117,43 @@ function () \{
   \label{example}
 \end{figure}
 
-\section{froc}
+\subsection{froc}
 
-\emph{froc} is and OCaml library for functional reactive programming in OCaml. It uses self adjusting computation to push updates to input variables through data paths in the program. Froc implements a syntax extension which is used to build dependency graphs in the program. Dependencies can be chained so that expressions use the result of other expressions. The self adjusting computation ensures that when an input changes, the least about of computation is done: expressions who's inputs don't change are not recomputed.
+\emph{froc} is an OCaml library for reactive programming in OCaml.
 
-\subsection{Syntax}
-Froc introduces a wrapper around values called a \emph{behavior}. One of the methods froc adds is called \emph{bind}. There is also an additional syntax expression, \emph{>>=} which is short for bind. The bind function links an input behavior to a callback function and returns another behavior (the output). The callback function is run with the new value of the input behavior each time it is updated. The value the callback returns is the new value for the output behavior. Figure \ref{add_code} shows an example of froc and Figure \ref{add_graph} shows the dependency graph that froc holds internally.
+\subsubsection{Self Adjusting Computation}
+froc uses \emph{self adjusting computation} to push updates to input variables through data paths in the program. Self adjusting means that once the variable has been defined, the program will automatically forward changes to dependencies. This is stored by the program as a \emph{dependency graph}.
 
-\subsection{Dependency Graphs}
-Figure \ref{if_graph} shows a more complex dependency graph. This example illustrates two properties of froc. The first is lazy evaluation. If we can calculate the value of \emph{z} and the result of \emph{z=0} first then we may not need to calculate \emph{x+y}. Preventing calculations for unused results reduces the running time of a program. The second feature is the essentially the same but is used to avoid evaluating expressions which could cause exceptions which are expensive to handle. Correct control flow in a program ensures that the lazy evaluation will only execute expressions which will succeed.
+\subsubsection{Dependency Graphs}
+Given a set of variables and another set of variable dependencies (pairs of variable) a directed graph can be created where the variables form the nodes and the dependencies are the edges. This is a dependency graph and it is used by reactive programs to describe data-flow throughout the program.
 
-\begin{figure}
-  \begin{alltt}
+\subsection{Behaviors and Events}
+
+Reactive programming uses two polymorphic data type, \emph{behaviors} and \emph{events}. Behaviors are values which vary over time. This could be the colour of an object or it's width for example. Events are a series of time ordered values which correspond to real events such as a mouse press.\cite{bib:lambda}
+
+In order to use these time-varying variables froc provides a way to \emph{bind} them to functions. Naturally this function is called \emph{bind} and has the following syntax:
+
+\texttt{bind : 'a behavior -> ('a -> 'b behavior) -> 'b behavior}
+
+This is a function which takes a behavior of type $\alpha$ and a callback function which converts an $\alpha$ to a $\beta behavior$ and returns a new behavior. Binding other behaviors to a variable is how the dependency graph is constructed, whenever the dependent behaviors change the callback function is invoked with the new values. There is also a syntax shortcut for bind, \emph{\textgreater\textgreater=}.
+
+Any value can be converted into a behavior using the \emph{return} function:
+
+\texttt{return : 'a -> 'a behavior}
+
+Sometimes a callback which is a built in function might be required. Rather than wrapping it in a new function and calling \emph{bind} there is another function called \emph{lift} which does this automatically.
+
+\texttt{lift : 'a behavior -> ('a -> 'b) -> 'b behavior}
+
+There are also multiple argument versions of each function in case you wish to depend on more than one behavior at once. Here are the two argument versions of \emph{bind} and \emph{lift}:
+
+\texttt{bind2 : 'a behavior -> 'b behavior -> ('a -> 'b -> 'c behavior) -> 'c behavior}
+\texttt{lift2 : 'a behavior -> 'b behavior -> ('a -> 'b -> 'c) -> 'c behavior}
+
+Consider the following piece of OCaml:
+
+
+\begin{alltt}
 let x = return 1
 let y = return 2
 let z = return 3
@@ -112,10 +166,11 @@ let ans =
     i0 >>= fun i0 ->
         z >>= fun z ->
             return (i0 + z)
-  \end{alltt}
-  \caption{Addition using froc}
-  \label{add_code}
-\end{figure}
+\end{alltt}
+
+This program constructs a froc behavior which is the summation of three other behaviors. Figure \ref{add_graph} shows the dependency graph that froc holds internally for this program. Figure \ref{if_graph} shows a more complex dependency graph. In this example if we calculated the value of behavior \emph{b} before behavior \emph{a} and exception could be raised. This example does not cause a divide by zero exception. The first thing this tells us things about froc is that it doesn't always execute every statement in dependency tree, if an intermediate behavior is unused froc doesn't waste computation time on it. This is called \emph{lazy evaluation}. The second thing this tells us is that froc evaluates behaviors in a top-down order. It starts with the outputs and works out which behaviors it needs to compute next from there.\cite{bib:froc}
+
+One final thing to mention is that froc will not propagate changes to a behavior if the callback returns the existing value of the behavior. This is useful because it allows us to put cycles in the dependency graph. If froc did not have this property then a cyclic dependency graph would not terminate.
 
 \begin{figure}
   \centering
@@ -131,47 +186,79 @@ let ans =
   \label{if_graph}
 \end{figure}
 
-\section{Design Model}
-This project will use the evolutionary model of development because it is difficult to get the solution correct the first time. It is better to implement the core functionality first to check that the OCaml to JavaScript compilation is working correctly and then add features one at a time.
-
-\section{Version Control}
-Version control is very important for a software project. It involves breaking the project into a number of changesets, each of which is given a description, and the idea is that the code is in a consistent state before and after each commit. This is often used in conjunction with pushing changesets to a remote server which is regularly backed up. As a consequence if files get corrupted, deleted or changed in such a way that work has been undone they can be reverted to a working copy.
-
-There are many version control systems. Git is the one used for the ocamljs and froc projects. It has the functionality required above and there is a free to use service run by \emph{GitHub}\footnote{\url{http://www.github.com}} on the condition at your code is publicly viewable and anyone can fork your repository. The repository for this project can be found at \url{https://github.com/hhughes/ocaml-frui}.
-
-\section{Compiling the Project}
-Use the \emph{GNU Make}\footnote{\url{http://www.gnu.org/software/make/}} system. Make is essentially a wrapper around a bash script. It provides a simple way for anyone to compile source code because it is widely used. It also uses dependencies to only compile those parts of the project which have changed, reducing the compile time of the project during development.
-
-\section{HTTP Server}
+\subsection{HTTP Server}
 An HTTP server is required to serve up a web page. At first a stock web server, such as \emph{Apache}, seemed like a good idea because it requires minimal setup. This is good for serving static content (such as HTML pages and JavaScript files) but dynamic content (such as time-dependent JSON messages) proves more tricky. In order to deliver interesting JSON data some server code is required. The two options are to use some sort of server side scripting which Apache can execute, although this requires learning a new language such as \emph{PHP} or to find an implementation of an HTTP server in a language this project is already using (such as OCaml) and modify it such that JSON data can be generated at run-time and delivered to the client.
 
-Using an OCaml HTTP server is the more sensible solution because it gives the greatest amount of time and lets me concentrate on writing the JSON generating code rather than getting stuck learning a new syntax. The OCaml web server I shall use is \emph{ocaml-cohttpserver}\footnote{\url{https://github.com/avsm/ocaml-cohttpserver}}.
+Using an OCaml HTTP server is the more sensible solution because it gives the greatest amount of time and lets me concentrate on writing the JSON generating code rather than getting stuck learning a new syntax. The OCaml web server I shall use is \emph{ocaml-cohttpserver}\footnote{https://github.com/avsm/ocaml-cohttpserver}.
 
-\section{json-wheel}
-json-wheel is a JSON library for OCaml. It follows RFC4627\footnote{\url{http://www.ietf.org/rfc/rfc4627.txt}} which describes the notation used by JSON. It provides a way to build JSON expressions from OCaml objects and visa-versa.
+\subsubsection{json-wheel}
+json-wheel is a JSON library for OCaml. It provides a way to build JSON expressions from OCaml objects and visa-versa. \cite{bib:json_rfc}
 
-\section{Dependencies}
-ocamljs \& froc:
-\begin{itemize}
-\item ocaml source
-\item findlib
-\item ulex
-\item camlp4-extra
-\end{itemize}
-cohttp-server:
-\begin{itemize}
-\item lwt
-\item react
-\item libev
-\item cohttp
-\end{itemize}
-ocaml-frui:
-\begin{itemize}
-\item ocamljs
-\item froc
-\item cohttp-server
-\item json-wheel
-\end{itemize}
+\section{Architecture}
 
-\section{Requirements Analysis}
-[what goes here?]
+This project will use the a common design architecture called \emph{client-server}. Client-server is normally based on many clients, one server. It is designed such that the amount of processing performed by the server after each request is minimal. The majority of the computation, which is usually involved in rendering the data as elements on a page, is performed by each client. \cite{bib:dist_arch}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{images/client-server.png}
+  \caption{Client/Server Architecture}
+  \label{fig:client_server}
+\end{figure}
+
+\subsection{Log Viewer}
+...
+
+\subsection{Graph}
+...
+
+\subsection{Heatmap}
+...
+
+\section{Infrastructure}
+
+\subsection{Version Control}
+Version control is very important for a software project. It involves breaking the project into a number of changesets. Each change consists of differences to files along with a brief description explaining what changes were made. The idea is that the code is in a consistent state before and after each commit. This is often used in conjunction with pushing changesets to a remote server which is regularly backed up. As a consequence if files get corrupted, deleted or changed in such a way that work has been undone they can be reverted to a working copy.
+
+There are many version control systems. Git is the one used for the ocamljs and froc projects. It has the required functionality and there is a free to use service run by \emph{GitHub}\footnote{http://www.github.com} on the condition at your code is publicly viewable and anyone can fork your repository. The github service also provide some social networking features which allow other developers to follow changes to repositories they are interested in. The repository for this project can be found at https://github.com/hhughes/ocaml-frui.
+
+\subsection{Compiling the Project}
+The \emph{GNU Make} system will be used to perform compilation of the project. Make uses shell scripts and dependencies to compile just those parts of the project which have changed since it was last compiled. Compilation of this project is likely to be reasonably quick but it is good practice to use Make for when projects become larger. Make is also a commonly used and simple tool. It is likely that those who clone this repository will already be familiar with the tool.
+
+\section{Design Model}
+This project will use the evolutionary model of development because it is difficult to get the solution correct the first time. So by using the evolutionary model the project gets broken up into a number of features which are individually designed, implemented then tested. It is sensible to implement the core functionality first to check that the OCaml to JavaScript compilation is working correctly and then add features one at a time.
+
+[diagram of evolutionary model]
+
+\section{Testing}
+In order to test the applications written using ocamljs and froc each application shall have to be recreated using handwritten JavaScript. These implementations should provide the same functionality and use as close to the same algorithms as possible. Each version of each application will be tested using dummy input data and the average execution time of the JavaScript in each case will be used as comparison. Each application should also be tested on at least two web browsers which use different JavaScript engines (for example \emph{Google Chrome} uses \emph{V8} and \emph{Mozilla Firefox} uses \emph{SpiderMonkey}). This is because different browsers will optimise different parts of the code. A note should also be made of the estimated number of man-hours invested in both the ocamljs and pure JavaScript implementations to compare the \emph{ease} of writing the code.
+
+Micro-tests (e.g. implementations of simple algorithms such as \emph{quicksort} or \emph{matrix multiplication}) may also be required if testing results from the web applications are not significant.
+
+\section{Gantt Chart}
+...
+
+
+%\section{Web Applications}
+%JavaScript is a client-side scripting language supported by the most popular web browsers so web applications have to use it. Developing in JavaScript, as with all scripting languages, is fairly rapid but as the code base grows keeping track of types of variables and what code gets executed when soon becomes unmanageable. It would be nice if JavaScript could provide the same guarantees for the web application as for programs compiled using OCaml.
+
+%% \section{Dependencies}
+%% ocamljs \& froc:
+%% \begin{itemize}
+%% \item ocaml source
+%% \item findlib
+%% \item ulex
+%% \item camlp4-extra
+%% \end{itemize}
+%% cohttp-server:
+%% \begin{itemize}
+%% \item lwt
+%% \item react
+%% \item libev
+%% \item cohttp
+%% \end{itemize}
+%% ocaml-frui:
+%% \begin{itemize}
+%% \item ocamljs
+%% \item froc
+%% \item cohttp-server
+%% \item json-wheel
+%% \end{itemize}
