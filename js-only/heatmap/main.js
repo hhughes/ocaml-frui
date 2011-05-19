@@ -87,7 +87,8 @@ function set_time(y) {
 }
 
 function load() {
-    var loaded = 3;
+    var n = parseInt($("input#n").val());
+    var loaded = n;
     function all_done() {
 	loaded--;
 	if(!loaded) {
@@ -106,9 +107,9 @@ function load() {
 	all_done();
     }
 
-    $.get("http://localhost:8080/elec", load_elec);
-    $.get("http://localhost:8080/elec2", load_elec);
-    $.get("http://localhost:8080/elec3", load_elec);
+    if(n > 0) $.get("http://localhost:8080/elec", load_elec);
+    if(n > 1) $.get("http://localhost:8080/elec2", load_elec);
+    if(n > 2) $.get("http://localhost:8080/elec3", load_elec);
 }
 
 function create_spinner() {

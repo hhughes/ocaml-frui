@@ -8,15 +8,19 @@ then
 fi
 
 echo \[
-
-for x in $(seq 1 $N)
+X=0
+while [ "$X" -lt "$N" ]
 do
-    M=`wget -qO- http://localhost:8080/next_msg | sed '1d' | sed '$d' | sed s/\"/\'/g`
-    if [ -n "$M" ]
-    then
-	echo "$M"
-	echo ,
-    fi
+    M=""
+    while [ -z "$M" ]
+    do
+	M=`wget -qO- http://localhost:8080/next_msg | sed '1d' | sed '$d' | sed s/\"/\'/g`
+    done
+    echo "$M,"
+    C=$(( `echo "$M"|wc -l` / 8 ))
+    X=$(( $X + $C ))
+    #echo $C
+    #echo $X
     sleep .25
 done
 

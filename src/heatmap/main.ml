@@ -97,7 +97,14 @@ let load_objects ht_d ht_v max o s =
     | _ -> () (*Logger.debug s*)
 
 let load_json _ =
-  let urls = [("http://localhost:8080/elec", elec_data, elec_vars, elec_max);
+  let n_input = (Dom.document#getElementById "n" : Dom.input) in
+  let n = int_of_string (n_input#_get_value) in
+  to_load := n-1;
+  let urls = match n with
+    | 1 -> [("http://localhost:8080/elec", elec_data, elec_vars, elec_max);]
+    | 2 -> [("http://localhost:8080/elec", elec_data, elec_vars, elec_max);
+	      ("http://localhost:8080/elec2", elec_data, elec_vars, elec_max)]
+    | _ -> [("http://localhost:8080/elec", elec_data, elec_vars, elec_max);
 	      ("http://localhost:8080/elec2", elec_data, elec_vars, elec_max);
 	      ("http://localhost:8080/elec3", elec_data, elec_vars, elec_max)] in
   List.iter (fun (u, ht_d, ht_v, max) -> ignore (jQuery_util#get u () (load_objects ht_d ht_v max))) urls;

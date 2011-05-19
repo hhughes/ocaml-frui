@@ -86,7 +86,8 @@ function set_time(y) {
 }
 
 function load() {
-    var loaded = 100;
+    var n = parseInt($("input#n").val()) + 1;
+    var loaded = n * 2;
     function all_done() {
 	loaded--;
 	if(!loaded) {
@@ -109,7 +110,7 @@ function load() {
 	load_objects(life_data, o);
 	all_done();
     }
-    for(var i=1; i<=50; i++) {
+    for(var i=1; i<=n; i++) {
 	$.get("http://localhost:8080/gdp/gdp-" + i + ".json", load_gdp);
 	$.get("http://localhost:8080/life/life-" + i + ".json", load_life);
     }

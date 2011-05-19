@@ -1,98 +1,122 @@
 \chapter{Evaluation}
+Having written the code, the next stage is to assess how the applications perform under testing. This section will compare the three applications from the implementation section with JavaScript equivalents. It will describe in detail the process of testing from both a quantitative and qualitative viewpoint.
 
-\section{Testing}
-It is important to know how ocamljs performs compared to hand-written JavaScript. In order to test the performance of the ocamljs there need to be web applications coded in JavaScript which use the same algorithms. These can each be run against some test data and the amount of time to execute the code can be compared for the different solutions.
+\section{Volume Testing}
+Testing can be split into two categories, functional and non-functional tests. Functional tests are related to user work flows. For example, the user clicks a button and a prompt dialog with certain text appears. Non-functional tests, which will be the focus of this section, are more often related to performance. More specifically the testing will be \emph{volume testing} which looks at how the application scales with large amounts of data~\cite{bib:art-of-testing}.
 
-\subsection{Test data}
-In order to make it a fair test, the same test data must be used each time. This means that for the log viewer, pie chart and word cloud a test set of data must be created. This can be done using a shell script to run the \emph{wget} program against the server. This data can then be saved in a file and served up whenever the test data is requested.
+All tests have been carried out using a 2GHz dual core laptop running Ubuntu 11.04.2. The web browsers used were Google Chrome 11.0.696.65 beta and Mozilla Firefox 4.0.1 with Firebug 1.7.0.
 
-\subsection{Test 1}
-The first test is for the log viewer, pie chart and word cloud. It tests how well the solutions cope with large numbers of messages retrieved all at once. To create the dataset one hundred requests are made to the server, these are then compiled into one JSON array and stored in a single file. This is then repeated for the next hundred messages. These files are 8.7KB and 12KB respectively so only take around 4ms to download from an HTTP server on the local machine, hopefully variance in latency from downloading these files will not affect the results as much as they would over say a busy wireless link.
+\subsection{Purpose}
+The purpose of this testing is to find out how applications written using \emph{ocamljs} compare to hand coded JavaScript versions. It is also useful to measure performance when the application is running on different JavaScript engines. The two that shall be used here are Google Chrome's V8 and SpiderMonkey which is used by Mozilla Firefox. They both do some compilation on the JavaScript code but where SpiderMonkey compiles JavaScript to byte code (which gets executed on by a virtual machine), V8 compiles it to native code so should, in theory, be faster~\cite{bib:v8-proj,bib:spidermonkey}.
 
-\subsection{Test 2}
-The second test involves making lots of requests to the server. It tests how quickly the code can make requests for one hundred messages and draw them to the screen. The test data for this was made in a similar way as for \emph{Test 1}. Again a local machine server is used to guarantee nothing else is making requests while the tests are being performed.
+The re-implementations of the applications will have to be written carefully to follow the same algorithms as the \emph{ocamljs} versions. This should give a better comparison between the two methods rather than trying to optimise the JavaScript code too much.
 
-\subsection{Testing method}
-In order to gather some data about the tests the time the JavaScript takes to execute needs to be measured. This can be done using the developer tools included in \emph{Google Chrome}. One of the tools provided shows how time is spend while the page is loaded. Which functions and remote calls take how long. This is what the tests will use as the output data. Each test will be run multiple times and averaged in order to reduce random fluctuations in the execute time for the JavaScript. These could occur, for example, in the event the thread which is running the JavaScript code is preempted by a higher priority system thread.
+\subsection{Strategy}
+The testing will be carried out manually, as it is difficult to do automated testing on a user interface. There are some tools for doing this, such as \emph{Selenium}\footnote{\url{http://seleniumhq.org/}}, however these are difficult to use and do not integrate with the browser's development tools.
 
-The testing process was done manually. After the timer tool is started reload the page so that the DOM always starts consistent. Then run the test. \emph{Test 1} consists of clicking a button to load the first lot of data then a second after that data has loaded. This is repeated 5 times in total. The data collected is the time spent executing JavaScript and the time spent rendering objects on the page. \emph{Test 2} is one button click, the data is the time from requesting the first piece of JSON until after the last one has been rendered.
+Ideally the client and server processes should be the only ones running on the testing machine. This isolation is not possible in practice because both parts depend on a lot of other parts of the operating system. The best that can be done is to make sure that no other applications are running during the tests except for the server and the web browser. Each test will be repeated three times with the mean of these used as the final result.
 
-\subsection{Data}
+One problem is how to get a similar testing result in both Chrome and Firefox. Google Chrome has in-built developer tools which includes a feature it calls the \emph{timeline}. The timeline shows a record of events such as network calls, mouse events or painting events. Events are also nested so if one event follows another they are grouped in the panel. Recording the time for the callback event obtains a measurement of how long it took the JavaScript to parse and set up the data structures for the messages. This is exactly what is needed for these tests, except that such a feature does not exist for Mozilla Firefox.
 
-Figure \ref{test_data} shows the data collected.
+Both browsers feature a code profiler. The profiler shows how execution time was spent among the JavaScript functions in the application. The running time of the callback function for the AJAX GET call is a measure of how long the application took to load the messages and then render the page. The reason this is not the preferred method for testing is because \emph{ocamljs} makes all of the OCaml functions anonymous, that is, they are declared as values and assigned to variables. These cannot be identified in the profiler because they do not have names. In order to give these functions a distinguishable name, the compiled JavaScript code must be modified. For example, taking the compiled version of the function which adds two numbers together (from listing \ref{lst:simple-comp}):
+
+\begin{lstlisting}[caption={Compiled JavaScript example}]
+var f$58 =
+  _f(2, function (a$59, b$60) {
+    return a$59 + b$60;
+  });
+\end{lstlisting}
+
+The modification required to show function \emph{f} in the profiler is to declare a named function inside the anonymous one. The function \emph{\_f} is still needed. This returns an object containing the function which can be partially applied to (see the \emph{eval-apply} method from section \ref{lab:eval-apply}).
+
+\begin{lstlisting}[caption={Example with named function}]
+var f$58 =
+  _f(2, function (a$59, b$60) {
+    function f(a$59, b$60) {
+      return a$59 + b$60;
+    }
+    f(a$59, b$60);
+  });
+\end{lstlisting}
+
+\subsubsection{Application 1: Log Viewer}
+The test for the Log Viewer consisted of measuring the loading time for varying numbers of messages. In order to make it a fair test the messages must be the same on each test run. The first task is to obtain these messages. The longer the load time of the test data the more variation we will get with the results. The Google Chrome Profiler only displays times to two decimal places so if the tests take longer than one minute a lot of accuracy is lost. As a result we should aim to use a range of message volumes which can be loaded in less than a minute.
+
+Initially the range 100 to 1000 incrementing in steps of 100 was chosen. However, the \emph{ocamljs} version of the application crashed Google Chrome when loading more than 700 messages. It failed silently but it is likely to be something to do with a limit on how OCaml lists are represented in JavaScript (see section \ref{lab:ocaml-js}). Even worse Mozilla Firefox could not cope with more than 200 messages in the \emph{ocamljs} implementation without crashing. Therefore I decided to start with 25 messages and test every increment of 25 up to 200 messages. Figure \ref{fig:log-viewer-test} shows the results for this testing run.
 
 \begin{figure}
-  \begin{tabular}{|c|c|c|c|c|c|c|c|c|}
-    \hline
-    \textbf{Test} & \multicolumn{8}{|c|}{\textbf{Log Viewer}} \\
-    \cline{2-9}
-    & \multicolumn{2}{|c|}{\textbf{All}} & \multicolumn{2}{|c|}{\textbf{Visualiser}} & \multicolumn{2}{|c|}{\textbf{Pie Chart}} & \multicolumn{2}{|c|}{\textbf{Word Cloud}} \\
-    \cline{2-9}
-    & \textbf{js} & \textbf{ocamljs} & \textbf{js} & \textbf{ocamljs} & \textbf{js} & \textbf{ocamljs} & \textbf{js} & \textbf{ocamljs}\\
-    \hline
-    \emph{test\_1a\_script} & 711 & 892 & 600.2 & 271 & 66.2 & 50 & 74.4 & 202.2 \\
-    \hline
-    \emph{test\_1a\_render} & 482.6 & 398.6 & 430 & 378.2 & 0 & 0 & 13.8 & 0 \\
-    \hline
-    \emph{test\_1b\_script} & 2196 & 879.2 & 2012 & 56 & 67.8 & 74.4 & 93.8 & 267.8 \\
-    \hline
-    \emph{test\_1b\_render} & 1270.4 & 119.4 & 1482 & 98.8 & 0 & 0 & 13.4 & 0 \\
-    \hline
-    \emph{test\_2} & 7695.75 & 7804.5 & 6622.2 & 5577.6 & 3075.2 & 3003.8 & 2941 & 3408 \\
-    \hline
-  \end{tabular}
-  \caption{Test data}
-  \label{test_data}
+  \includegraphics{charts/log-viewer-get.pdf}
+  \caption{Log Viewer tests}
+  \label{fig:log-viewer-test}
+\end{figure}
+
+Because, unexpectedly, the \emph{ocamljs} application ran faster on V8 than the JavaScript implementation did, extra tests using Google Chrome's timeline were run. The timeline breaks down execution into \emph{loading}, \emph{scripting} and \emph{rendering}. This should give a better idea of where the extra processing time was used. Figures \ref{fig:log-viewer-scripting} \& \ref{fig:log-viewer-rendering} show the results for each implementation for these extra tests (the value for \emph{loading} was always zero).
+
+\begin{figure}
+  \includegraphics{charts/log-viewer-scripting.pdf}
+  \caption{Log Viewer scripting tests}
+  \label{fig:log-viewer-scripting}
 \end{figure}
 
 \begin{figure}
-  \begin{tabular}{|c|c|c|}
-    \hline
-    \textbf{Test} & \multicolumn{2}{|c|}{\textbf{Data Graph}} \\
-    \cline{2-3}
-    & \textbf{js} & \textbf{ocamljs} \\
-    \hline
-    \emph{test3a\_load} & 961.8 & 1499.6 \\
-    \hline
-    \emph{test3b\_script} & 10.2 & 359.6 \\
-    \hline
-    \emph{test3b\_render} & 11.8 & 18 \\
-    \hline
-  \end{tabular}
-  \caption{Test data 2}
-  \label{test_data2}
+  \includegraphics{charts/log-viewer-rendering.pdf}
+  \caption{Log Viewer rendering tests}
+  \label{fig:log-viewer-rendering}
 \end{figure}
 
-\subsection{Analysis}
-Rendering takes significantly longer in pure JavaScript compared to ocamljs compiled JavaScript.
+\subsubsection{Application 2: Dataset Graph}
+Testing the Dataset Graph involved timing how long it took to load varying amounts of data. The source data for the graph is split into several pages. These tests will vary how many of those pages are loaded. Once again, it is important that both implementations on both platforms can run all the test without crashing. The resulting graph can be found in figure \ref{fig:data-graph-test}. The \emph{ocamljs} application performed particularly badly in Mozilla Firefox under this test so a second graph (figure \ref{fig:data-graph-test-noff}) has been created which omits this result.
 
-\section{ocamljs vs JavaScript}
-\emph{At what point does writing ocamljs become more effective than js?} Probably once there are multiple developers working on the same piece of web application code. JavaScript quickly becomes unmanageable but OCaml uses modules and classes which can all be independent of each other. This makes it a lot more useful for large scale projects. Also because of the strong type checking, programming errors can easily be identified. This is not so easy with large pieces of JavaScript code where they can become lost and take a long time to debug.
+\begin{figure}
+  \includegraphics{charts/data-graph-get.pdf}
+  \caption{Dataset Graph tests}
+  \label{fig:data-graph-test}
+\end{figure}
 
-However if the application is fairly small (~100 lines of JavaScript) it would almost certainly be quicker and easier to write it straight in JavaScript, ocamljs is very clunky and repetitive for doing things one off such as setting styles and adding text to elements.
+\begin{figure}
+  \includegraphics{charts/data-graph-get-noff.pdf}
+  \caption{Dataset Graph tests (without Firefox \emph{ocamljs})}
+  \label{fig:data-graph-test-noff}
+\end{figure}
 
-%probably irrelevant :(
+\subsubsection{Application 3: Heat Map}
+There was not as much data available for these tests as there was for the Dataset Graph. As a result these tests did not provide much variation in results, except for the \emph{ocamljs} application under SpiderMonkey which once again performed extremely badly (see figure \ref{fig:heat-map-test}, figure \ref{fig:heat-map-test-noff} shows the results from the Heat Map test without the Firefox \emph{ocamljs} test).
 
-%Sometimes the JavaScript interpretation of the code does not do what is expected. The OCaml compiles and the bytecode version would do the correct thing but the JavaScript doesn't work. This is often due to limitations in the compilation of OCaml into JavaScript. One example occurred when using the Hashtable module. At first the data structure for the graph control used a hash table indexed by year (an integer). The OCaml hash table has the following type:
+\begin{figure}
+  \includegraphics{charts/heat-map-get.pdf}
+  \caption{Heat Map tests}
+  \label{fig:heat-map-test}
+\end{figure}
 
-%\begin{center}
-%\texttt{type ($\alpha$, $\beta$) t}
-%\end{center}
+\begin{figure}
+  \includegraphics{charts/heat-map-get-noff.pdf}
+  \caption{Heat Map tests}
+  \label{fig:heat-map-test-noff}
+\end{figure}
 
-%This means that both the key and the value can be of any type (and can be different types from each other). However when the OCaml is compiled into JavaScript it only works if the keys are strings. In JavaScript hash tables are implemented as standard JavaScript objects. These objects can have arbitrary fields so behave exactly like hash tables indexed by strings. This does work with integers because the browser interprets them as their string value. However, the ocamljs compiler
+\subsection{Interpretation of Results}
+The first thing to note is that in all cases Chrome's V8 was faster than Mozilla SpiderMonkey. This is unsurprising since the V8 project page claims that it is faster than SpiderMonkey. Obviously it depends on the benchmarking suites used but in under these tests V8 appears to be faster~\cite{bib:v8-proj,bib:are-we-fast}.
 
-%takes ten times as long to code with probably less debugging but not really worth it!
+Generally the JavaScript implementations perform better than the \emph{ocamljs} ones. In the Heat Map and Dataset Graph tests JavaScript is around four times faster. The differences are less pronounced when running SpiderMonkey in the Log Viewer and surprisingly \emph{ocamljs} is in fact faster than the handwritten JavaScript when running the Log Viewer under V8.
 
-\section{Where froc was useful}
-\subsection{Log viewer}
-froc was used to update the display whenever a new message arrived or when the time was updated. All of the elements depended on the time range displayed so just as much work would have been done if there was a \emph{refresh} method which had iterated through the list of elements, passing them into the function which set their location. Both of these methods run in $O(n)$ so there should not be any computational advantage to using froc in this case, indeed there maybe even an extra overhead.
+It is likely that the compilation from OCaml and the additional book keeping required by \emph{froc} will add extra overhead. So it is expected that the \emph{ocamljs} implementation will be slower than JavaScript. Explaining why it is faster in the case of the Log Viewer is difficult especially since the relative speed of the applications are reversed when using the other JavaScript Engine.
 
-However, looking at the testing results for the log viewer, there is a significant difference in the running time that the complexity analysis does not suggest there should be. Running the scripts and rendering the divs takes significantly longer in the JavaScript solution. [however this could be due to a difference in algorithms...]
-\subsection{Pie chart}
-The data collected from testing this part of the project shows that using \emph{froc} and \emph{ocamljs} does not make much different to running times in this case.
-\subsection{Word Cloud}
-The combination of \emph{froc} and \emph{ocamljs} caused extra overhead, script execution time was significantly longer for the \emph{ocamljs} implementation.
-\subsection{Dataset Graph}
-In this case it causes more overhead. According to the testing results it about 1.5 times the time to load the data and more than an order of magnitude to render it. The order of magnitude result is significant.
-\subsection{Heat map}
-[not sure how to test this]
+The extra tests for the Log Viewer on Google Chrome (figures \ref{fig:log-viewer-scripting} \& \ref{fig:log-viewer-rendering}) show that the rendering times for each implementation were roughly the same but that the scripting times were consistently different. This could be for several reasons. Either the V8 JavaScript engine was particularly good at optimising the code for the \emph{ocamljs} Log Viewer, or the code for the JavaScript application was computationally less efficient. The fact that the JavaScript solution was faster than the \emph{ocamljs} one when running on SpiderMonkey suggests that it was probably the former reason and that, by chance, V8 could successfully optimise the \emph{ocamljs} compiled code.
+
+\section{Qualitative Evaluation}
+As opposed to quantitative testing which concentrates on real facts and numbers, qualitative testing focuses more on the developer's experiences as they developed the applications using the two different methods. This section will provide a brief description as to how the different programming styles of OCaml and JavaScript \emph{performed} during development compared to each other.
+
+\subsection{ocamljs vs JavaScript}
+An important factor in comparing these two methods of producing web applications is how long it takes the code to load the same data. A full user study where a large group of programmers with varying levels of experience all coding up many web applications in both OCaml and JavaScript would be time consuming and beyond the scope of this project. However, with a fair amount of experience in writing web applications in JavaScript and some experience in writing commercial OCaml code I feel I am in a good position to comment on this topic.
+
+When writing the OCaml, I found the going was fairly slow to begin with. The code has to be written with a view for it to run in an imperative way. Accessing the style methods (such as for changing the element's colour or position) were wordy and cumbersome. One advantage, however, was that the compiler's type checker found a lot of the programming errors. Although this was frustrating at the time, these would have been a lot harder to find if they were errors in JavaScript code being discovered at run-time. There were a few times when the compilation succeeded and the application did not work (for example the JSON float typing pitfall in section \ref{lab:json-pitfall}). These were time consuming to debug because after compilation the code looked very different to the OCaml source -- the variables had been renamed and all the functions had been moved into variables so they could use the eval-apply closures (section \ref{lab:eval-apply}).
+
+I found writing the JavaScript implementations much easier. This could have been because I knew exactly what algorithms the program should use, how it should look and how it should behave. It could also be down to having had some prior experience writing applications in JavaScript and finally it could have been that it just makes more sense to write these applications in procedural JavaScript. It is probably a combination of all three of these factors that made producing the JavaScript applications faster.
+
+\subsection{Was froc useful?}
+\emph{froc} was used in all three applications (although not in the JavaScript implementations). In all three it was used to automatically position elements and update the display when necessary. It was useful in the Log Viewer with the \emph{froc-list} extension (see section \ref{lab:froc-list}) where functions could be associated with the lists and when new elements were added, those functions were automatically bound to the new item and run. However all this could have been done using a single loop which could run the layout function on each element every time anything changed (which is exactly what \emph{froc} ended up doing).
+
+The other two applications used \emph{froc} in a slightly more useful way. There was a \emph{froc} \emph{behavior} (see section \ref{lab:behavior}) for each of the data points' x and y coordinates. When the time variable for the graph was updated, the new values were loaded into these \emph{behavior}s so if the values did not change, so no repositioning was done. This would not affect the overall computational complexity but it might make it run faster in the average case.
+
+\section{Summary}
+\emph{ocamljs} and \emph{froc} have much more expressive power than JavaScript. They provide functional and reactive programming styles for web application development. They do introduce an overhead and with these tools you end up spending more time thinking how to write your program than you would with JavaScript. However, you spend less time debugging the application because the type checker will pick up most programming errors. There is also the advantage that the OCaml compiler checks all parts of the code. With JavaScript it will load the code as long as it can be parsed but there is no guarantee that all of the parts of your JavaScript code have been executed on your test run (unless you use a tool such as \emph{JSCoverage}\cite{bib:jscover}).

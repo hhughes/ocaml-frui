@@ -185,8 +185,8 @@ function load_msg_obj(o) {
 	total_msgs++;
 	set_t(msg.ts);
 	add_to_pie(msg.ty);
-//	add_to_cloud(msg);
-/*	switch(msg.ty) {
+	add_to_cloud(msg);
+	switch(msg.ty) {
 	    case "t_start":
 		//create t
 		msg.ty = "thread";
@@ -218,7 +218,7 @@ function load_msg_obj(o) {
 	        functions[msg.ts] = msg
 		layout_div(msg);
 		break;
-		}*/
+		}
     }
 }
 
@@ -307,9 +307,14 @@ function test2() {
     _test2(0);
 }
 
+function visualise () {
+    $.get($("input#json_url").val(), load_msg_obj)
+}
+
 create_spinner("min", min_up, min_down);
 create_spinner("max", max_up, max_down);
 
+$("button#visualise").click(visualise);
 $("button#next_msg").click(next_msg);
 $("button#start").click(start);
 $("button#test1a").click(test1a);

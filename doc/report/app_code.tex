@@ -1,5 +1,50 @@
 \chapter{Code}
 
 \section{OCaml}
-
+\subsection{froc-list.ml}
+\label{app:froc-list}
+\begin{alltt}
+class ['a] flist =
+object (self)
+  val mutable first = []
+  val mutable last = []
+  val mutable fs = []
+  method lift (f : 'a -> unit) = 
+    begin
+      let l o = ignore (Froc.lift f o) in
+      fs <- f :: fs;
+      List.iter l first;
+      List.iter l (List.rev last)
+    end
+  method lift_all o =
+    begin
+      let l f = ignore (Froc.lift f o) in
+      List.iter l fs
+    end
+  method list = List.rev_append (List.rev first) (List.rev last)
+  method push o = self#lift_all o; first <- o :: first
+  method push_end o = self#lift_all o; last <- o :: last
+  method pop = let hd = List.hd first in first <- List.tl first; hd
+  method pop_end = let hd = List.hd last in last <- List.tl last; hd
+end
+\end{alltt}
 \section{JavaScript}
+
+\section{Shell}
+\subsection{get-world-bank-data.sh}
+\label{app:data}
+\begin{alltt}
+#!/bin/sh
+if [ "\$1" = "gdp" ]
+then
+  OUT="gdp"
+  URL="http://api.worldbank.org/countries/all/indicators/NY.GDP.MKTP.CD"
+else
+  OUT="life"
+  URL="http://api.worldbank.org/countries/all/indicators/SP.DYN.LE00.IN"
+fi
+
+for n in \$(seq 1 245)
+  do wget -O \${OUT}-\${n}.json \${URL}?format=json\&per_page=50\&page=\${n} && sleep 5
+done
+\end{alltt}

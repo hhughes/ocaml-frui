@@ -1,35 +1,42 @@
 \chapter{Introduction}
 
+This chapter introduces the reasons for the project and the goals it sets out to achieve. It looks at the advantages of web applications and some of the issues currently involved in developing them.
+
 \section{Motivation}
-Web applications are are becoming increasingly popular. Applications installed on the local machine have many disadvatages. One such issue is that the software is difficult to upgrade. Another is that it often costs the user a large one-off amount because it is difficult for the vendor to maintain a service contract when they have distributed a copy of the software binary to the user. If these applications are instead hosted from a remote server then the vendor can worry about upgrading and updating the software and can charge a much smaller but regular fee to the user for the service.\cite{bib:road_ahead}
+Web applications are becoming increasingly popular due to the disadvantages associated with applications installed on the local machine. One such issue is that the software is difficult to upgrade. Another is that it often costs the user a large one-off amount because it is difficult for the vendor to maintain a service contract when they have distributed a copy of the software binary to the user. If these applications are instead hosted from a remote server then the vendor can worry about upgrading and updating the software and can charge a much smaller but regular fee to the user for the service~\cite{bib:road_ahead}.
 
-There is a vast variety of programming languages which can be used to create desktop applications. Each provides certain advantages so the developer can choose the one which best suits their needs, this could be anything from the runtime guarantees the programming language provides to rapid development and prototyping. It does not make much difference to the user which of these languages was used, all they want to do is run their favourite application. When writing an application for the Web, however, the programmer is forced to use a specific set of tools. These tools come under the umbrella term \emph{AJAX} (Asynchronous JavaScript and XML). AJAX involves writing client-side code in JavaScript and performing asynchronous requests to the server. This provides a more interactive environment than the classical web application model. The classical model uses the server to create the next web page on the fly and then reloads the current page with the new one. This is often less desirable because loading a new page causes a break in the user's work flow.\cite{bib:ajax}
+There is a variety of programming languages which can be used to create desktop applications. Each provides certain advantages so the developer can choose the language which best suits their needs; this could be anything from the run-time guarantees the programming language provides to rapid development and prototyping. It does not make much difference to the user which language is used; all they want to do is run their favourite application. When writing an application for the Web, however, the programmer is forced to use a specific set of tools. These tools come under the umbrella term \emph{AJAX} (Asynchronous JavaScript and XML). AJAX involves writing client-side code in JavaScript and performing asynchronous requests to the server. This provides a more interactive environment than the classical web application model. The classical model uses the server to create the next web page on the fly and then reloads the current page with the new one. This is often less desirable than AJAX because loading the new page causes a break in the user's work flow~\cite{bib:ajax}.
 
-While JavaScript is a full-featured language there are other programming languages which provide features it does not. It would be nice if those other languages could be used to write web applications without having to provide a new environment which has to be used to run it. That is that the applications are written in the language of choice but then compiled into JavaScript so will run in current web browsers.
+While JavaScript is a full-featured language, there are other programming languages which provide features it does not. It would be nice if those other languages could be used to write web applications without having to provide a new environment to run them in. In that way, the applications could be written in the developers language of choice but then compiled into JavaScript so would run in current web browsers.
 
-This project will explore the usefulness of writing web applications using Functional and Reactive programming techniques.
+The purpose of this project is to explore the usefulness of writing web applications using \emph{functional} and \emph{reactive} programming techniques.
 
 \section{Concepts}
 
+This section gives a brief overview and some examples of some programming concepts which lead to functional reactive programming (FRP).
+
 \subsection{Glossary of Terms}
 
-\textbf{Imperative Programming}: \emph{A programming language which uses a series of statements to manipulate an implicit state}.\cite{bib:prog}
+\textbf{Imperative Programming}: \emph{A programming language which uses a series of statements to manipulate an implicit state}~\cite{bib:prog}.
 
-\textbf{Declarative Programming}: \emph{These languages are designed to have no state and no assignment. Any state has to be passed into functions as parameters}.\cite{bib:prog}
+\textbf{Declarative Programming}: \emph{These languages are designed to have no state and no assignment. Any state has to be passed into functions as parameters}~\cite{bib:prog}.
 
 \subsection{Scripting Languages}
-Scripting is a special type of imperative programming. Scripts are commonly used in rapid prototyping and for performing simple tasks and computations. They often use lazy typing and have minimal structure. JavaScript is a scripting language with c-like syntax which has been adopted by web developers as the main way to perform client-side programming in web applications.\cite{bib:crockford}
+Scripting is a special type of imperative programming. Scripts are commonly used in rapid prototyping and for performing simple tasks and computations. They often use lazy typing and have minimal structure. JavaScript is a scripting language with C-like syntax which has been adopted by web developers as the most prominent way to perform client-side programming in web applications~\cite{bib:crockford}.
 
 \subsection{Functional Programming}
-The functional programming languages are a subset of the declarative programming languages. With functional programming, \emph{functions} are used as the underlying computation model. Some of the key features of functional programming languages include strong static typing, type inference, polymorphism. These make the guarantee that any program which passes the type inferencer will not have any type errors.\cite{bib:functional_prog}
+\label{lab:functional}
+The functional programming languages are a subset of the declarative programming languages. With functional programming, \emph{functions} are used as the underlying computation model. Some of the key features of functional programming languages include strong static typing, type inference and polymorphism. These guarantee that any program which passes the type inferencer will not have any type errors~\cite{bib:functional_prog}.
 
 \subsection{Reactive Programming}
-Reactive programming provides a way to express how data flows through a program. With imperative programming, if the result of a calculation is assigned to a variable, a change to the inputs of that calculation will not alter the value stored. With reactive programming, however, changes to inputs are passed through the program. Thus the values of variables can depend on the values of other variables and inputs and will update accordingly. Reactive programming languages construct a data-flow graph whose nodes are the variables in the program and edges are the dependencies for each variable.\cite{bib:functional_react,bib:lowering}
+Reactive programming provides a way to express how data flows through a program. With imperative programming, if the result of a calculation is assigned to a variable, a change to the inputs of that calculation will not alter the value stored. With reactive programming, however, changes to inputs are passed through the program. Thus the values of variables can depend on the values of other variables and inputs and will update accordingly. Reactive programming languages construct a data-flow graph whose nodes are the variables in the program and whose edges are the dependencies for each variable~\cite{bib:functional_react,bib:lowering}. There are several examples of reactive programming languages. One such example is \emph{ESTEREL}, which is used for programming reactive systems in hardware~\cite{bib:esterel}. Another is \emph{flapjax} which is a language for writing reactive web applications in JavaScript~\cite{bib:flapjax}.
+
+Functional reactive programming is a combination of these two concepts, writing reactive programs using a functional programming language. An example of functional reactive programming can be seen \emph{Functional Reactive Animation}~\cite{bib:fran}.
 
 \section{Purpose}
+\label{lab:goals}
+The goals of this project are to find solutions to the following questions:
 
-The goals of this project are to find solutions to the following:
+\emph{Is compiling JavaScript pages from a functional programming language a good idea? Where is it useful and what are the downsides?}
 
-Is compiling JavaScript pages from a functional programming language a good idea? Where is it useful and what are the downsides?
-
-Is reactive programming useful in the context of web applications? Is there a particular situation where the gains (in terms of both computation and code production efficiency) are particularly great?
+\emph{Is reactive programming useful in the context of web applications? Is there a particular situation where the gains (in terms of both computation and code production efficiency) are particularly great?}

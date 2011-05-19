@@ -1,4 +1,4 @@
-\documentclass[10pt,a4paper]{book}
+\documentclass[12pt,a4paper]{book}
 \usepackage{hyperref}
 \usepackage{parskip}
 \usepackage{listings}
@@ -12,36 +12,56 @@
 \usepackage{epstopdf}
 \usepackage{geometry}
 \geometry{bindingoffset=1cm}
+%\usepackage{float}
+%\floatstyle{boxed} 
+%\restylefloat{figure}
 
-\usepackage{float}
-\floatstyle{boxed} 
-\restylefloat{figure}
+\usepackage{pdfpages}
 
 \usepackage[toc]{glossaries}
 
 \begin{document}
 \input{helpers.tex}
-\lstset{
-  language=caml,
-  basicstyle=\scriptsize,
-  upquote=true,
-  aboveskip={1.5\baselineskip},
-  columns=fixed,
-  showstringspaces=false,
-  extendedchars=true,
-  breaklines=true,
-  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
-  frame=single,
-  showtabs=false,
-  showspaces=false,
-  showstringspaces=false,
-  identifierstyle=\ttfamily,
-  keywordstyle=\color[rgb]{0,0,1},
-  commentstyle=\color[rgb]{0.133,0.545,0.133},
-  stringstyle=\color[rgb]{0.627,0.126,0.941},
-}
+
+%\lstlistoflistings
+\definecolor{darkgray}{rgb}{0.95,0.95,0.95}
+\lstset{language=caml}
+\lstset{backgroundcolor=\color{darkgray}}
+\lstset{frame=leftline}
+\lstset{identifierstyle=\ttfamily}
+\lstset{numbers=left, numberstyle=\tiny, stepnumber=1, numbersep=5pt}
+\lstset{morekeywords={setglobal,apply,makeblock,var,return,class,object,val,method}}
+\lstset{keywordstyle=\color{blue}\bfseries}
+\lstset{commentstyle=\color[rgb]{0.133,0.545,0.133}}
+\lstset{stringstyle=\color[rgb]{0.627,0.126,0.941}}
+\lstset{breaklines=false}
+
+\makeatletter\newenvironment{graybox}{%
+   \begin{lrbox}{\@tempboxa}\begin{minipage}{\columnwidth}}{\end{minipage}\end{lrbox}%
+   \colorbox{darkgray}{\usebox{\@tempboxa}}
+}\makeatother
+
+%% \lstset{
+%%   language=caml,
+%%   basicstyle=\scriptsize,
+%%   upquote=true,
+%% %  aboveskip={1.5\baselineskip},
+%%   columns=fixed,
+%%   showstringspaces=false,
+%%   extendedchars=true,
+%%   breaklines=true,
+%% %  prebreak = \raisebox{0ex}[0ex][0ex]{\ensuremath{\hookleftarrow}},
+%%   frame=single,
+%%   showtabs=false,
+%%   showspaces=false,
+%%   showstringspaces=false,
+%%   identifierstyle=\ttfamily,
+%%   keywordstyle=\color[rgb]{0,0,1},
+%%   commentstyle=\color[rgb]{0.133,0.545,0.133},
+%%   stringstyle=\color[rgb]{0.627,0.126,0.941},
+%%   numbers=left,
+%% }
 \setcounter{tocdepth}{1}
-\input{glos.tex}
 
   \frontmatter
   \input{cover.tex}
@@ -58,8 +78,11 @@
 
 %  \backmatter
   \input{bibl.tex}
-  \printglossaries
-  \appendix
-  \input{app_code.tex}
+%  \printglossaries
+%  \appendix
+%  \input{app.tex}
+\cleardoublepage
+  \addcontentsline{toc}{chapter}{Project Proposal}
+  \includepdf[pages={1-4}]{../proposal/proposal_final_final.pdf}
 
 \end{document}

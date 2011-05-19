@@ -1,43 +1,49 @@
 \chapter{Implementation}
-A series of problems I will solve to determine what type of problem ocamljs and froc are most useful for.
-\section{Log Viewer}
-Problem: \emph{Reading log files is difficult and confusing when we have multiple threads. Design a system using ocamljs and froc which could replace the log module in a program to display the messages in a more helpful way.}
+The preparation section looked at the tools that are going to be used in implementing this project. This section describes a series of web applications that will form the project to help achieve its goals (section \ref{lab:goals}) and will investigate whether \emph{ocamljs} and \emph{froc} are useful tools for constructing web applications.
 
-One way to display this information is to show a time-line for each thread. Debug messages can be shown as points on each thread line and function enters and exits can also be added to show which function we are in at any point.
+\section{Log Viewer (Application 1)}
+\emph{Design a system using \emph{ocamljs} and \emph{froc} which could replace the logging module in a program to display the messages in a more helpful way}.
+
+The messages from each thread need to be separated out so that the control flow of each thread can be followed. It would also be useful to be able to compare the progress of threads with all the others. Therefore the application should display some kind of time line which shows threads as progress bars and shows any debugging messages as points on this time line. Each thread can occupy a single row so it can be seen relative to the other threads. The control will also show when the thread enters and exits functions.
+
+In addition to the time line some other widgets will be added (since the purpose of this application is to demonstrate and evaluate the \emph{ocamljs} and \emph{froc} technologies). These will be a pie chart that displays the proportions of types of messages received from the server and a word cloud style widget that shows the most popular words mentioned in debugging messages and their relative proportions.
+
+The next section will look at how to retrieve these messages in the web application.
 
 \subsection{JSON}
-ocamljs creates web applications, therefore the log viewer will also be one of these. JSON (JavaScript Object Notation) shall be used to communicate with the log viewer interface. JSON is used because when a string of JSON is passed to the JavaScript \emph{eval} function it is converted to the correct JavaScript object.
+JavaScript Object Notation (JSON) is a lightweight format for exchanging data. It is human readable and easy to generate and parse (especially with JavaScript). For this reason the server will use a JSON format to send messages requested by the web application. JSON takes the same format as objects in JavaScript so parsing a JSON string to an object is simply a case of passing it into the \texttt{eval} function which runs the JavaScript interpreter on the string~\cite{bib:json}.
 
-This is fairly straight forward in JavaScript but doing the same in OCaml is slightly more tricky. In JavaScript objects are collections of key-value pairs (usually implemented as a hash table to provide a fast lookup) where the keys are strings and the values can be any object. New key-value pairs can be added at runtime by setting unused field values, if an unused key is referenced then the null object is returned. This is very \emph{unOCaml}-like behaviour. In OCaml the field would have to be explicitly declared in the object definition. However, because we know the JSON schema for our objects we can make a class for it.
+\subsubsection{JSON and ocamljs}
+Although parsing JSON is straightforward in JavaScript, the same cannot be said about OCaml. In JavaScript, objects are collections of key-value pairs, usually implemented as a hash table to provide a fast look-up: the keys are strings and the values can be any object. New key-value pairs can be added at run-time by setting unused field values; if an unused key is referenced then the null object is returned~\cite{bib:crock_js}. This would not pass the OCaml type checker because these hash tables do not have a static type -- their type changes every time a field is added or replaced with a different type of object. As such, we have to declare the final type for our message object in OCaml before compile time. This can be done using classes and an OCaml feature called \emph{external functions}.
 
-There are two ways to convert the JSON string into a JavaScript object. The first is to parse the string manually and set the values of mutable fields on the object as we go along. The problem with this is that unmarshalling the JSON would have some tricky corner cases, such as string padding, what to do with (and how to detect) invalid JSON? A better solution is to use the JavaScript \emph{eval} to convert the JSON to an object. This issue with this is how do we access the fields on the object?
-
-With OCaml not being as popular as a language like C there are many libraries which would be useful for an OCaml program which has been implemented in C. Sometimes it isn't worth porting the C code to OCaml so an interoperability layer has been added to OCaml which provides a way to interface with C libraries. Communication between OCaml and C is achieved using \emph{external} function declarations. These are a very similar to prototype functions found in C header files. External functions have the following syntax:
+\subsubsection{External Functions}
+This feature was added to OCaml because sometimes it is helpful to use C libraries from within the OCaml program. C is a far more popular programming language than OCaml. It is older, more supported and a lot of software is written using it. As a result there are a lot of libraries that would be useful for an OCaml program that have already been implemented in C. It sometimes isn't worth reimplementing the library in OCaml, especially if the library causes \emph{unsafe} operations that cannot be written in OCaml. Communication between OCaml and C is achieved using \emph{external} function declarations~\cite{bib:ocaml}. External functions have the following syntax:
 
 \begin{center}
 \texttt{external caml\_name : type = "C\_name"}
 \end{center}
 
-There are special prefixes for the function name string which are handled by the ocamljs compiler to provide JavaScript field accessors and method calls. Figure \ref{external} shows a table listing these.
+There are special prefixes for the \texttt{C\_name} string which are handled by the \emph{ocamljs} compiler to provide JavaScript field accessors and method calls. Figure \ref{external} shows a table listing these.
 
-With this we can create a function which will apply a string to the \emph{eval} function and return us the JavaScript object wrapped by a dummy OCaml class. For example in this case the class has type \emph{msg} so the type of the external function for converting a JSON string to a msg is \texttt{string -> msg}. The code for this method is as follows:
+With this, an external function can be created which will apply a string to the \texttt{eval} function and return the JavaScript object, wrapped by a dummy OCaml class. For example, in this case the class has type \texttt{msg} so the type of the external function for converting a JSON string to a msg is \texttt{string -> msg}. The code for this method is as follows:
 
 \begin{center}
 \texttt{external parse\_json : string -> msg = "@eval"}
 \end{center}
 
-In order to access fields we use the \emph{.} prefix for the external function and pass in the JavaScript object. OCaml has no way of checking if these types are going to correct at runtime so an exception will be raised if they are wrong. A pitfall discovered using this is that JSON uses strings to represent floating point numbers, if the external function is typed \texttt{msg -> float} this will compile but using the value will cause undetermined errors at runtime. OCaml will treat the value in memory as a float when it is really a string.
+In order to access fields we use the \emph{.} prefix for the external function and pass in the JavaScript object. OCaml has no way of checking if these types will be correct at run-time so compilation will succeed even if they are wrong. \label{lab:json-pitfall}A pitfall discovered using this is that JSON uses strings to represent floating point numbers, if the external function is typed \texttt{msg -> float} this will pass the type checker. OCaml will treat the value in memory as a float when it is really a string, causing undetermined errors at run-time.
 
-It is unlikely there will be just one message ready each time we poll the server. Therefore it would be sensible to store a queue of messages at the server and flush the whole queue at once. The JSON would then be an array of objects. ocamljs provides a \emph{JavaScript} module which provides function wrappers around some of the common functions and objects built into JavaScript. One such is \emph{js\_array}, an object which can represent a JavaScript array object. If we are parsing a JSON array of objects we can use the type \texttt{string -> msg js\_array} to return and object which represents an array.
+\subsubsection{JavaScript Arrays}
+It is unlikely there will be just one message ready each time the server is queried. Therefore it would be sensible to store a queue of messages at the server and flush the whole queue at once. As a result, the JSON will contain an array of objects. \emph{ocamljs} has a module called \texttt{Javascript}\label{lab:javascript}. This provides wrappers for the common functions and objects built into JavaScript. The \texttt{js\_array} class represents JavaScript array objects. This class is polymorphic so each object in the array must be of a given type\footnote{JavaScript actually supports arrays of different types of objects so we have to be careful that each object in the array we are parsing is of the correct type or this could cause errors.}. If we are parsing a JSON array of \texttt{msg} objects using the type \texttt{string -> msg js\_array}, the external function should return an object which represents the array.
 
-We can convert a \emph{js\_array} into a list in \texttt{$O(n)$} with the following function.
-
-\begin{alltt}
-let rec js\_array\_to\_list xs =
-  if xs\#\_get\_length > 0 then
-    xs\#pop :: (js\_array\_to\_list xs)
+The OCaml standard library has helper functions for handling OCaml lists so having a \texttt{js\_array} object is not very useful. A \texttt{js\_array} object can be converted into a \texttt{list} in \texttt{$O(n)$} time with the following function:
+\vfill\pagebreak
+\begin{lstlisting}[caption={Converting a \texttt{js\_array} to an OCaml \texttt{list}}]
+let rec js_array_to_list xs =
+  if xs#_get_length > 0 then
+    xs#pop :: (js_array_to_list xs)
   else []
-\end{alltt}
+\end{lstlisting}
 
 \begin{figure}
   \centering
@@ -49,17 +55,201 @@ let rec js\_array\_to\_list xs =
     \texttt{=} & assign property\\ \hline
     \texttt{@} & call built-in function\\ \hline
   \end{tabular}
-  \caption{ocamljs external function prefixes}
+  \caption{\emph{ocamljs} external function prefixes}
   \label{external}
 \end{figure}
 
+\subsection{HTTP, AJAX and JQuery}
+In order to request data from the server an HTTP call is required. There are two common types of HTTP call: \emph{GET} and \emph{POST}. \emph{GET} is a simple method which the client uses to request a data item from a server. The data requested is denoted by the URI address (Uniform Resource Identifier). \emph{POST} is used by the client to send data to a server. In this application the client is requesting messages from the server so \emph{GET} is the appropriate call to use~\cite{bib:http}.
+
+\emph{JQuery}\footnote{\url{http://jquery.com/}} is a JavaScript library that provides, among other things, AJAX interactions. In order to perform the HTTP GET to get new messages we use the AJAX \texttt{get} method. JQuery provides a simple interface for this and \emph{ocamljs} provides an interface to the JQuery library, much like the \texttt{Javascript} module mentioned in section \ref{lab:javascript}. The \texttt{JQuery} module has a \texttt{get} method with the following interface:
+
+\texttt{method get : string -> 'a -> ('b -> string -> unit)\\ -> Dom.xMLHttpRequest}
+
+This method takes a URL (string), a set of parameters and a callback function, returning a HTTP Request object. Here the important parts are the URL and the callback. The callback is a function which takes the resulting data and response string as its parameters. The response will be \emph{success} if the request was completed.
+
+\subsection{HTTP server}
+There needs to be an HTTP server running on a remote machine to provide the application web page and the data requested by the client. Both the page and the data must come from the same server because AJAX requests must be made to the same domain and port. If not the method throws a cross-site scripting exception. This is built into JavaScript to because it is a security risk~\cite{bib:xss}.\label{lab:xss}
+
+The web server this project shall use is called \emph{ocaml-cohttpserver}\footnote{\url{https://github.com/avsm/ocaml-cohttpserver}}. It is an OCaml library which parses HTTP requests and responds to them. The reason for using this implementation is that it is written in OCaml and therefore an OCaml program can be written which generates these debugging messages.
+
+\subsubsection{Static Pages}
+One issue with this server is that it does not provide a way to serve static files (such as HTML pages). The OCaml standard library provides a way of opening files so we can open a file and put its contents into the body of the HTTP reply. The code for serving up a file is as follows:
+
+\begin{lstlisting}[caption={Serve a file from disk}]
+let get_file file req = 
+  let size = (Unix.stat file).Unix.st_size in
+  let fd = Unix.openfile file [Unix.O_RDONLY] 0o444 in
+  let ic = Lwt_io.of_unix_fd
+    ~close:(fun () -> Unix.close fd; Lwt.return ())
+    ~mode:Lwt_io.input fd in
+  let t,u = Lwt.wait () in
+  let body = [`Inchan (Int64.of_int size,  ic, u)] in
+  return (dyn req body)
+\end{lstlisting}
+
+\subsubsection{Log Data}
+The server will also create some dummy data to test the Log Viewer. In order to make the data look interesting, there will be a state machine that will start and end threads, create fake messages and function enters and exits. Each state machine represents a new thread in the \emph{application} (the fake one which is being debugged). Each time the state machine progresses to the next state it generates a log message for that new state. These messages are then given to the client. The state of each thread is changed each time the client requests more messages. Figure \ref{fig:state} shows the state diagram for each state machine. The code for the state machine is displayed below:
+
+\begin{lstlisting}[caption={state machine and \texttt{get\_events} function from thread\_state.ml}]
+...
+type thread_state = Started | Running | FunEnter
+                  | FunExit | Msg | Finished | Stop
+...
+
+class thread =
+object (self)
+
+...
+
+  (* don't let us stop when in a function *)
+  method enterext = if in_fun then FunExit else FunEnter
+  method stopexit = if in_fun then FunExit else Finished 
+  method next_state p = function (* state machine *)
+  | Started -> if p < 80 then Running
+          else if p < 90 then self#enterext else Msg
+  | Running -> if p < 40 then Running
+          else if p < 60 then self#enterext
+          else if p < 90 then Msg else self#stopexit
+  | FunEnter -> if p < 50 then Running
+           else if p < 70 then FunExit else Msg
+  | FunExit ->  if p < 40 then Running
+           else if p < 50 then self#enterext else
+                if p < 80 then Msg else self#stopexit
+  | Msg -> if p < 60 then Running
+      else if p < 80 then self#enterext
+      else if p < 90 then Msg else self#stopexit
+  | Finished -> Stop
+  | Stop -> Stop
+
+...
+
+end
+
+...
+
+let threads = ref []
+let get_events () = (* fetch next events *)
+  threads := List.filter
+    (fun t -> t#state <> Stop) !threads;
+  if (Random.int 100) < 10 then
+    threads := (new thread) :: !threads;
+  let events = List.fold_right
+     (fun t -> t#next_event) !threads [] in
+  Json_io.string_of_json (Events.jsonify events)
+\end{lstlisting}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=10cm]{graphs/state.png}
+  \caption{State machine diagram for test data (\emph{f} means in a function, \emph{!f} is not in a function)}
+  \label{fig:state}
+\end{figure}
+
+\subsubsection{JSON generation}
+Before a list of messages can be sent back to the client the list needs to be serialised into a JSON string. The OCaml module \emph{json-wheel} provides helper functions for this. It has a collection of methods which convert different OCaml types into JSON strings. This string can then be sent to the client in the body of the HTTP reply~\cite{bib:json_rfc}.
+
 \subsection{froc}
-\emph{froc} is used in the log viewer to make the div elements (which show messages, functions and threads) re-align themselves when the time range changes.
+The messages are being displayed on a time line. As newer messages arrive the amount of time represented by the time line will increase. When this happens all the objects representing messages will have to realign so that they are in the correct place on the time line. The placement function for each element can be \emph{bound} (see section \ref{lab:behavior}) to a \emph{froc} \emph{behavior} which represents the time line. Whenever this \emph{behavior} is updated the placement function will be called for each element and they will realign themselves.
 
-In the first implementation the time range of the visualiser only changes when new messages arrive. The start time is set to the earliest known message and the end time is when the latest message was generated. The ends of the time range represented by two \emph{froc} variables. When a new message arrives, if it is newer than the newest message or older than the oldest then update these variables. A message is then turned into a div element. A function which lays the div in the correct place on the page is bound to the two \emph{froc} variables which represent the time range. Now whenever the variables are updated each of the divs bound to these have their callbacks run and the divs are realigned.
+\subsubsection{froc-lists}
+\label{lab:froc-list}
+There is also a further use of \emph{froc} in this application. Ideally all the currently displayed messages would be stored in a special list which was \emph{bound} such that whenever the contents of the list changed elements were created for new messages (and destroyed for old ones) and all the bindings for each element in the list were applied to new ones.
 
-\subsection{Controlling the Time Range}
-One of the requirements was to provide a way to zoom into particular ranges. The simplest way to provide this functionality is to use two input boxes, one which represents the time value for the leftmost message (minimum) and the other for the rightmost value (maximum). When the values in the input boxes change the two variables which represent the time range are updated. Alternatively if a new message arrives and one of the time range variables update then the input boxes will now not correspond to the correct value of the maximum of the time range. Therefore this has to update the values in the input boxes too. Figure \ref{spinners} shows the dependency graph for these controls.
+Unfortunately, in OCaml, list objects are immutable (like most objects in functional languages). This means that appending to a list actually creates a new list object, likewise when removing an element from the head of a list. If we used the data-type \texttt{'a list behavior} then when the \emph{behavior} is changed the callback function is run over the whole list again. We only want to run this on new elements, we do not want to do unnecessary work or create duplicate elements.
+
+To solve this issue a new OCaml data type needs to be created. It uses two lists: one for the front elements and one for the back elements to allow appending to both ends of the list. It holds internally a list of functions which become bound to any new elements that are added to the list, new functions are bound to every existing list element. There are push and pop methods to add/remove elements and a method which returns the data structure as an OCaml list.
+\vfill\pagebreak
+The interface for the \emph{froc-list} should be as follows:
+
+\begin{lstlisting}[caption={flist.mli}]
+class ['a] flist :
+  object
+    val mutable first : 'a Froc.behavior list
+    val mutable fs : ('a -> unit) list
+    val mutable last : 'a Froc.behavior list
+    method lift : ('a -> unit) -> unit
+    method lift_all : 'a Froc.behavior -> unit
+    method list : 'a Froc.behavior list
+    method pop : 'a Froc.behavior
+    method pop_end : 'a Froc.behavior
+    method push : 'a Froc.behavior -> unit
+    method push_end : 'a Froc.behavior -> unit
+  end
+\end{lstlisting}
+
+Here is the code for \emph{flist.ml}:
+
+\begin{lstlisting}[caption={flist.ml}]
+class ['a] flist =
+object (self)
+  val mutable first = []
+  val mutable last = []
+  val mutable fs = []
+  method lift (f : 'a -> unit) = 
+    begin
+      let l o = ignore (Froc.lift f o) in
+      fs <- f :: fs;
+      List.iter l first;
+      List.iter l (List.rev last)
+    end
+  method lift_all o = (* internal *)
+    begin
+      let l f = ignore (Froc.lift f o) in
+      List.iter l fs
+    end
+  method list = List.rev_append
+    (List.rev first) (List.rev last)
+  method push o =
+    begin
+      self#lift_all o;
+      first <- o :: first
+    end
+  method push_end o =
+    begin
+      self#lift_all o;
+      last <- o :: last
+    end
+  method pop =
+    begin
+      let hd = List.hd first in
+      first <- List.tl first;
+      hd
+    end
+  method pop_end =
+    begin
+      let hd = List.hd last in
+      last <- List.tl last;
+      hd
+    end
+end
+\end{lstlisting}
+
+Figure \ref{fig:flist-comp} shows the complexity of each of the froc-list methods. Pushing to and popping from the list is computationally inexpensive. Lifts occur in $O(n)$ but are rare. The method \texttt{list} has the same complexity, however, it is called much more often (every time the data-structure needs to be read). Also the standard library function \texttt{List.rev} is not \emph{tail recursive}. Tail recursion means that while the function is recursive, it calls itself multiple times, it uses constant stack space. Not being tail recursive will use a $O(n)$ sized stack. This could potentially be a limiting factor in the number of items the \emph{froc-list} can store.
+
+\begin{figure}
+  \centering
+  \begin{tabular}{|l|l|}
+    \hline
+    \textbf{Function} & \textbf{Complexity} \\
+    \hline
+      lift & $O(n)$ \\
+      \hline
+      list & $O(n)$\\
+      \hline
+      push/push\_end & $O(1)$ \\
+      \hline
+      pop/pop\_end & $O(1)$ \\
+      \hline
+  \end{tabular}
+  \caption{Time Complexity for \emph{froc-list} methods}
+  \label{fig:flist-comp}
+\end{figure}
+
+\subsubsection{Controlling the Time Range}
+Displaying all the messages at once quickly becomes impractical; messages are positioned so close together it gets difficult to read each individual one. A useful feature would be a way to zoom in on a particular time range. All the message elements are bound to the minimum and maximum time range displayed. Providing a way to update these values should be sufficient to perform the zooming.
+
+One such user interface element that can be used for this is a \emph{spinner}. A spinner provides a numerical input box and two buttons to increment and decrement the current value. The value of the spinner can be bound to one of the time range boundaries so two spinners can control the time range displayed. Any messages whose timestamps are outside the currently displayed range can be hidden. The value shown in the spinner can also be bound to the value for the time ranges so that when new messages arrive they display the values for the range. Figure \ref{spinners} shows the dependency graph for the spinners. In this graph, the value \emph{t0} depends on \emph{min} and \emph{min} depends on \emph{t0}. This cycle will not cause a problem in \emph{froc} because it does not propagate updates when the value has not changed. Usually with cycles, each keeps on updating the other with the same value which will never terminate.
 
 \begin{figure}
   \centering
@@ -68,97 +258,107 @@ One of the requirements was to provide a way to zoom into particular ranges. The
   \label{spinners}
 \end{figure}
 
-There is a cycle in the dependency graph. This usually would mean that once an update gets into the cycle it would never terminate. However, because froc only sends an update when the value actually changes the cycle gets broken. This means no defensive programming is required to prevent cycles in the dependency graph, this is all managed by \emph{froc}.
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.75]{images/visualiser.pdf}
+  \caption{Screen-shot of Log Viewer control}
+  \label{fig:visualiser}
+\end{figure}
 
-\section{cohttp-server}
-To retrieve JSON data the log viewer interface needs to use the \emph{HTTP GET} command. This simply requests a page from the server. This page need not be a real file and we can modify the HTTP server to generate some JSON on the fly to give back.
+\subsection{Pie Chart}
+Rendering the thread view for the Log Viewer requires using HTML \emph{DIV} elements. These are given position and size values and are rendered by the browser. A pie chart cannot be drawn by DIVs which are rectangular. In order to draw arbitrary shapes we need to use the HTML \emph{CANVAS} element. 
 
-The HTTP server implementation I used is called cohttp-server. This is because it is written in OCaml and the source code is free to use.
+\subsubsection{HTML CANVAS Element}
+The CANVAS element is new to \emph{HTML5}. It provides a bitmap image and functions to draw 2D shapes and lines. It is much more flexible than drawing using HTML DIVs however removing objects from the scene requires erasing and redrawing whole sections. The functions for drawing and filling arcs and paths can be used to draw the outline and pieces of the pie chart~\cite{bib:html5}.
 
-\subsection{State Machine}
-In order to generate some interesting and believable data to test the log viewer on I am going to use a state machine to determine the next state of each thread. Each thread must be one of the following states (visualised in Figure \ref{state})
-\begin{itemize}{}
-\item Started
-\item Running
-\item FunEnter
-\item FunExit
-\item Msg
-\item Finished
-\item Stop
-\end{itemize}
+\subsubsection{Counting Message Types}
+It would not be very efficient to iterate through all messages counting how many of each type there are every time the pie needs to be redrawn. Instead a data type can be used which maps the names of message types to values representing how many of those messages have been seen. When a new message arrives, its type is read and the appropriate counter is incremented. \emph{froc} can be used to bind the value for each counter to the method which redraws the pie chart and then this will happen whenever the counter values are changed.
+
+The size of each slice of pie represents the proportion of that type of message.
 
 \begin{figure}
   \centering
-  \includegraphics[width=10cm]{graphs/state.png}
-  \caption{State machine diagram for test data}
-  \label{state}
+  \includegraphics[scale=0.75]{images/pie.pdf}
+  \caption{Screen-shot of pie chart control}
+  \label{fig:pie}
 \end{figure}
 
-\subsection{JSON generation}
-JSON is generated using the \emph{json-wheel} OCaml module
-
-\section{froc Extension: froc-lists}
-\subsection{Motivation}
-Lots of events
-
-If we have too many to store we can poll for more
-
-Need to store these events in a list object
-
-If we used \texttt{\textnormal{$\alpha$} list behavior} then we would have to rebuild all the objects from scratch when a new item was added to the list.
-
-When we have a list we want to be able to apply a lift or bind to all the current elements of the list and all future ones. To simplify lets assume we are only ever going to need to push one element to the list of pop one element off at a time. We will also need a method to give us the list in the form of an OCaml list. Finally we will want to add to both the end and the start of the list if we are polling for data.
-
-\subsection{Implementation}
-
-The underlying data structure is two lists, one is the first half of the list (\texttt{first}), the other is the second half(\texttt{last}). Items are arranged in these lists such that pushing to the list \texttt{first} will add items to the beginning of the list and pushing to \texttt{last} will add items to the end of the list.
-
-To return the object as an OCaml list the method \texttt{list} is implemented as follows:
-
-\texttt{method list = List.rev\_append (List.rev first) (List.rev last)}
-
-This runs in \texttt{$O(n)$}.
-
-\subsection{Extensions}
-Unlike froc behaviours we cannot bind a function to when the list itself changes.
-
-\section{Pie Chart}
-Problem: \emph{When we have data being processed in real time it would be nice to have a widget which showed some property of that data and which updated as new data comes in}
-
-Map strings (which could represent message types for example) to integers which get incremented each time an occurrence of this happens. Use froc to redraw the pie each time the counters change.
-
-\subsection{HTML Canvas Element}
-The Canvas element is a new element type added to HTML5. It provides a bitmap image and functions to draw 2D shapes and lines. It is much more flexible than drawing using HTML divs however removing objects from the scene requires erasing and redrawing whole sections.
-
-\subsection{Rendering the Pie}
-The pie chart shows the proportions of each type of message so will have to update each time a new message arrives. The canvas element provides an arc drawing function. The start of the arc will be wherever the last one finished (or 0 if it is the first piece) and the end of the arc will the proportion of total items that piece represents around the circle ($2\pi$ radians). Unfortunately when any part of the pie chart has to update the whole canvas has to be erased and the pie redrawn from scratch so the self adjusting properties of froc cannot be exploited.
-
 \subsection{Word Cloud}
-Problem: \emph{Similar to the pie chart, display the most popular words}
+The word cloud is similar to the pie chart. Instead of counting objects in predefined categories (such as message type) it counts occurrences of an unbounded set of words. There is no limit to the number of objects counted. The data structure to use in this case is a hash table where the word that is being counted is the key and the number of past occurrences is the value. When a new word appears and the look-up in the hash table fails, a new entry is added. This algorithm runs in \texttt{$O(1)$}, however, the space requirements are \texttt{$O(n)$} and the hash table object will require \texttt{$O(n)$} time each time it grows.
 
-The word cloud is very similar to the pie chart. Instead of counting object in predefined categories (such as message type) it count occurrences of words. There is not limit to the number of objects we are counting. The data structure to use in this case is a hash table. Use the word that is being counted as the key and the number of past occurrences as the value. When a new word appears the lookup in the hash table fails and a new entry can be added. This algorithm runs in \texttt{$O(1)$} however the space requirements are \texttt{$O(n)$} and the hash table object will require \texttt{$O(n)$} time each time it grows.
+To represent the data the words are drawn on a canvas with the font size (in pixels) set to the relative proportion the word is used.
 
-To represent the data the words are drawn on a canvas with the font size (in pixels) set to the relative proportion that word is used.
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.75]{images/cloud.pdf}
+  \caption{Screen-shot of word cloud control}
+  \label{fig:cloud}
+\end{figure}
 
-\section{Dataset Graph}
-Problem: \emph{We would like to compare some data which varies in multiple dimensions on a 2D graph.}
+\section{Dataset Graph (Application 2)}
+\label{lab:ds-graph}
+\emph{This application will show some data with three variables, one on each axis and one that is varied using a \emph{play} function}.
 
-For example the data used in \emph{The Joy of Stats}\footnote{http://www.gapminder.org}. Data varies over time which is why froc is suited for this application. Each data point is represented by a HTML div element which realigns itself when the \emph{current} data changes (as we run through time and pick different data points).
+Hans Rosling's \emph{The Joy of Stats}\cite{bib:stats} contains a good example of a graph with these properties. It compares Life Expectancy vs GDP (Gross Domestic Product) all against time. The graph itself will be straightforward to draw; DIV elements can be used to represent each point. \emph{froc} can be used to position each div as the time variable changes value.
 
-\subsection{Data Sources}
-There are lots of data set available on the internet for example Twitter provide numerous data sets providing information about recent Tweets, posting users etc. There are several problems with this. The number of items returned each time is limited, the number of requests in a given time period are limited and each record is very large so contain a lot of unneeded data. Live data is quite often not very useful. With the Twitter data some of the time fields are missing etc.
+\subsubsection{Data Sources}
+\emph{The World Bank} has yearly GDP and life expectancy data for most countries from 1960 to 2010. Their website provides an HTTP interface and the data can be retrieved in JSON format. This data can be used to recreate a graph similar to that used in \emph{The Joy of Stats}.
 
-Historical data is much better because it can use usefully formatted and collated. The World Bank provides an API for a data set covering economics and development statistics for each country. It provides a RESTful interface and the data can be presented in JSON format. This data can be used to recreate a graph similar to that used in The Joy of Stats, which shows GDP against life expectancy all over time. To prevent having to request the same data over and over again from the World Bank web site, a snapshot can be made by using the \emph{wget} Unix tool. A script can be written to get all the pages of data required.
+It is a good idea to cache all the data required on the machine that hosts the HTTP server. This saves repeatedly making the same requests to The World Bank servers, saves on bandwidth and avoids the cross-site scripting problem mentioned in section \ref{lab:xss}. There are 245 pages of this data so a shell script was used to make all the data requests. This script is shown below.
 
-\subsection{Data Structures for the Axes}
-After parsing all the data there needs to be an effective way to inject the current data value for each axis into each data point. It seems sensible to use two froc variables for each data-point, one for each axis. As the time changes these variables get updated with the correct value from the dataset. The data structures for storing both the data and the froc variables need to be chosen carefully.
+\lstset{language=bash}
+\begin{lstlisting}
+#!/bin/sh
+if [ "$1" = "gdp" ]
+then
+  OUT="gdp"
+  URL="http://api.worldbank.org\
+/countries/all/indicators/NY.GDP.MKTP.CD"
+else
+  OUT="life"
+  URL="http://api.worldbank.org\
+/countries/all/indicators/SP.DYN.LE00.IN"
+fi
 
-When the time value changes the whole set of data for that year is needed. Therefore it makes sense to use a hash table to store the data which is index by year. The value at each index is a list of key-value pairs with the key being the country ID and the value being the data value for that country in that year. Next the correct froc variables need to be found and updated with the new values. As the program iterates through the list of values the ID for the country is known at each point. Therefore if the froc variables were also stored in a hash table but this time indexed by country ID the lookup time to update the values will be constant. Therefore the total time to change the year should be \texttt{$O(n)$} where \emph{n} is the number of countries. 
+for n in $(seq 1 245)
+  do wget -O ${OUT}-${n}.json \
+${URL}?format=json&per_page=50&page=${n} && sleep 5
+done
+\end{lstlisting}
+\lstset{language=caml}
 
-\section{Heat Map}
-Problem: \emph{How do we display data about energy usage over time for a number of rooms in a building?}
+\subsubsection{Loading Data}
+All the data is requested from the server when the application is loaded. There is too much data to be put into a single file (there is a lot of bloat) because it is longer than the maximum size string the JavaScript \emph{eval} function will accept. This is why the data is requested over 245 pages. The data is then stored in a series of hash tables, one for each variable. The hash tables map the year to a list of key-value pairs. Here the key is the country ID and the value is the value for that country in that year. Figure \ref{fig:hashtbl} illustrates how data is stored in this application.
 
-A heat map can be used to show the relative amounts of energy usage in different rooms at a given time. The higher the value for that room the \emph{hotter} the colour of that part of the map. A heat map is a graph with the x and y axes have been changed to represent physical dimensions. The values for a and y will not change so it's implementation is simpler than for the dataset graph.
+\begin{figure}
+\centering
+\includegraphics{images/hashtbl.pdf}
+\caption{Data storage in the Dataset Graph}
+\label{fig:hashtbl}
+\end{figure}
+
+\emph{froc} will be used to move the data points around. Two \emph{behavior}s will be needed for each point, one from each axis. There is a global \emph{behavior} which represents the current time displayed. When the time variable is updated, this triggers a function which loads the data for the new year. This updates the values for each of the data point \emph{behavior}s. These \emph{behavior}s are stored in a hash table indexed by country ID.
+
+Look up for hash tables should be $O(1)$. This means that loading the data and repositioning the data points when the year changes should be $O(n)$ (there are $n$ new data points and updating a \emph{froc} variable will be $O(1)$).
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.5]{images/graph.pdf}
+  \caption{Screen-shot of data-set graph control}
+  \label{fig:graph}
+\end{figure}
+
+\section{Heat Map (Application 3)}
+\emph{Create an application which displays data about energy usage over time for a number of rooms in a building}.
+
+A heat map can be used to show the relative amounts of energy usage in different rooms at a given time. The higher the value for that room the \emph{hotter} the colour of that part of the map. A heat map is a graph where the X and Y axes represent physical location. This will have a similar implementation to the Dataset Graph in section \ref{lab:ds-graph}.
 
 \subsection{Rendering the Map}
-From using the canvas element to draw the pie chart and word cloud we saw that drawing using canvases provided lots of flexibility but updating only the parts which have changed is difficult. If div elements were used, however, then the browser handles redrawing them itself. The problem with using div elements is that they are rectangular and rooms are often not. This could be solved by using multiple div elements which when coloured the same will form the shape of the room. Because this is aesthetics this project will just use a square in the middle of the room to represent the colour for the whole room.
+One difference from the graph application is that the data points are no longer points but instead rooms which have arbitrary shapes. These could be drawn using either a canvas element or multiple DIVs. It is unlikely to make a difference which is used. Since these are just aesthetic features the \emph{heat} of a room will be represented as a coloured DIV (square) positioned over the middle of the room. The layout of the building can be displayed by putting an IMAGE element (of the build plan) on the page\footnote{Map images from \url{http://www.cl.cam.ac.uk/maps/}}. This application uses effectively the same data structures as the Dataset Graph, it binds a function which colours the DIV elements to the keys of a hash table of \emph{froc} \emph{behavior}s.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.75]{images/map.pdf}
+  \caption{Screen-shot of Heat Map control}
+  \label{fig:map}
+\end{figure}

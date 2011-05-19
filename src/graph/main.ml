@@ -92,8 +92,11 @@ let rec get_n u d v m = function
     get_n u d v m (n-1)
 
 let load_json _ =
-  get_n "http://localhost:8080/gdp/gdp-%d.json" gdp_data gdp_vars gdp_max 50;
-  get_n "http://localhost:8080/life/life-%d.json" life_data life_vars life_max 50;
+  let n_input = (Dom.document#getElementById "n" : Dom.input) in
+  let n = int_of_string (n_input#_get_value) + 1 in
+  to_load := (2 * n) - 1;
+  get_n "http://localhost:8080/gdp/gdp-%d.json" gdp_data gdp_vars gdp_max n;
+  get_n "http://localhost:8080/life/life-%d.json" life_data life_vars life_max n;
   true
 
 let onload () =

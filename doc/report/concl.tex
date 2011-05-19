@@ -1,1 +1,19 @@
 \chapter{Conclusions}
+To wrap up the project this chapter will take a look back at the goals set in the introductory chapter. It will also look at what scope there is for further research and the future of \emph{Functionally Reactive Web Applications}.
+
+\section{Project Successes}
+\emph{Is compiling JavaScript pages from a functional programming language a good idea? Where is it useful and what are the downsides?}
+
+Whether it is a good idea to use a functional programming language such as \emph{ocamljs} really depends on what is being developed, the size of the project and what constraints there are on the application. This project has shown that, with one exception, the JavaScript compiled from OCaml took longer to perform the same calculations that with plain JavaScript and it took longer to write the code to do this. It is definitely not effective for rapid prototyping since coding in OCaml takes considerably longer than writing JavaScript. The advantage comes when creating a large application where there are lots of parts as the module system in OCaml is very powerful. The type checker ensures that code changes do not accidentally break interfaces between parts, something which is very easy to do and not so easy to track down in JavaScript.
+
+On the other hand we have to remember we are discussing the development of web applications. The advantage here is that most of the time the server hosting the code is controlled by the developer; every time the user accesses the resource they receive a fresh copy of the application. This makes updating very easy so if things aren't quite right first time, the turnaround time for bug fixes can be extremely short.
+
+\emph{Is reactive programming useful in the context of web applications? Is there a particular situation where the gains (in terms of both computation and code production efficiency) are particularly great?}
+
+It turns out that none of the applications in this project really used the full power of \emph{froc}. Where used it simplified the code however it never really gave any computational advantage. A good application of \emph{froc} would make full advantage of the \emph{lazy evaluation} property of the library to reduce the number of unnecessary calculations performed.
+
+\section{Further Research}
+There is much more research to be done on the efficiency of \emph{ocamljs}, for example when does it produce code which can be heavily optimised by the JavaScript engine and can the \emph{ocamljs} compiler be modified to do this for the common case? The question as to when \emph{froc} was useful in web application was also left unanswered. It could be investigated whether \emph{froc} is more useful in situations where more user interaction is involved.
+
+\section{What's Next?}
+There is already a commercial use for web applications written in higher level languages. Google, for example, have used the \emph{Google Web Developer Toolkit} (GWT) to create their \emph{Google Moderator} and \emph{Google Wave} applications~\cite{bib:gwt}. GWT provides Java libraries and a compiler that produces a JavaScript application from Java source code. Functional programming is also becoming more popular in commercial situations. An example is the \emph{Xen Cloud Platform} management stack (called XAPI) which is written in OCaml~\cite{bib:xapi}. Maybe soon we shall see the functional programming advocates writing web applications too.

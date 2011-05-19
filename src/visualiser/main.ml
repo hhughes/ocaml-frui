@@ -44,11 +44,11 @@ let load_msg_count m = msg_count#inc
 let load_timeline m = () (* TODO *)
 
 let load_m m =
-  load_pie m
-(*  load_cloud m;*)
-(*  load_visualiser m*)
-(*  load_msg_count m;
-  load_timeline m*)
+  load_pie m;
+  load_cloud m;
+  load_visualiser m;
+  load_msg_count m
+(*  load_timeline m*)
 
 let load_objects o s =
   match s with
